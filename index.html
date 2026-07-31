@@ -338,12 +338,22 @@
 
             <!-- FORM 2: MEL DAY SHIFT (MULTI-DATE SELECTION) -->
             <form id="form-type-melshift" onsubmit="submitMelDayShifts(event)" class="space-y-3 hidden">
-                <div class="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg text-xs text-purple-700 dark:text-purple-300">
-                    Automatically adds <strong>"Mel Day Shift" (7:30 AM - 7:30 PM)</strong> for all selected dates below.
+                <div class="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg text-xs text-purple-700 dark:text-purple-300 flex items-center justify-between">
+                    <span>Automatically adds <strong>"Mel Day Shift" (7:30 AM - 7:30 PM)</strong> for selected dates.</span>
+                    <span id="shiftCountBadge" class="px-2 py-0.5 bg-purple-600 text-white text-[11px] rounded-full font-bold">0 selected</span>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase text-slate-500 mb-2">Select Days To Add Shifts</label>
-                    <div id="shiftDateCheckboxes" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-700/50"></div>
+                    <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-700/60 p-2 rounded-lg mb-2">
+                        <button type="button" onclick="navigateShiftMonth(-1)" class="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-xs font-bold" title="Previous Month">
+                            <i class="fa-solid fa-chevron-left"></i> Prev
+                        </button>
+                        <span id="shiftMonthLabel" class="text-xs font-bold text-slate-700 dark:text-slate-200"></span>
+                        <button type="button" onclick="navigateShiftMonth(1)" class="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-xs font-bold" title="Next Month">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div id="shiftCalendarGrid" class="border border-slate-200 dark:border-slate-700 rounded-lg p-2 bg-slate-50 dark:bg-slate-700/50 min-h-[200px]"></div>
                 </div>
                 <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow transition">
                     Mass Add Selected Shifts
@@ -833,26 +843,77 @@
             document.getElementById(`btn-type-${type}`).className = "py-2 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm font-bold";
         }
 
-        function populateShiftCheckboxes() {
-            const container = document.getElementById('shiftDateCheckboxes');
-            const today = new Date();
-            let html = '';
+        let shiftMonthDate = new Date();
+        const selectedShiftDates = new Set();
 
-            for (let i = 0; i < 14; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const dateStr = d.toISOString().split('T')[0];
-                const labelStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        function populateShiftCalendar() {
+            const container = document.getElementById('shiftCalendarGrid');
+            const monthLabel = document.getElementById('shiftMonthLabel');
+            const badge = document.getElementById('shiftCountBadge');
+
+            if (!container || !monthLabel) return;
+
+            const year = shiftMonthDate.getFullYear();
+            const month = shiftMonthDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            monthLabel.innerText = shiftMonthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            if (badge) badge.innerText = `${selectedShiftDates.size} selected`;
+
+            let html = `
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase text-slate-400 mb-1">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-xs">
+            `;
+
+            for (let p = 0; p < firstDay.getDay(); p++) {
+                html += `<div></div>`;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const dateObj = new Date(year, month, d);
+                const dateStr = dateObj.toISOString().split('T')[0];
+                const isSelected = selectedShiftDates.has(dateStr);
+                const isToday = dateStr === todayStr;
+
+                const btnClass = isSelected
+                    ? 'bg-purple-600 text-white font-bold shadow-sm scale-105'
+                    : isToday
+                        ? 'border-2 border-purple-500 text-purple-600 dark:text-purple-400 font-bold hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-slate-200 dark:border-slate-700';
 
                 html += `
-                    <label class="flex items-center gap-2 text-xs font-medium cursor-pointer p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600">
-                        <input type="checkbox" name="melShiftDate" value="${dateStr}" class="rounded text-purple-600">
-                        <span>${labelStr}</span>
-                    </label>
+                    <button type="button" onclick="toggleShiftDate('${dateStr}')" class="h-8 rounded-lg flex items-center justify-center transition-all ${btnClass}">
+                        ${d}
+                    </button>
                 `;
             }
 
+            html += `</div>`;
             container.innerHTML = html;
+        }
+
+        function navigateShiftMonth(delta) {
+            shiftMonthDate.setMonth(shiftMonthDate.getMonth() + delta);
+            populateShiftCalendar();
+        }
+
+        function toggleShiftDate(dateStr) {
+            if (selectedShiftDates.has(dateStr)) {
+                selectedShiftDates.delete(dateStr);
+            } else {
+                selectedShiftDates.add(dateStr);
+            }
+            populateShiftCalendar();
+        }
+
+        function populateShiftCheckboxes() {
+            shiftMonthDate = new Date(appState.currentDate || new Date());
+            populateShiftCalendar();
         }
 
         function submitStandardEvent(e) {
@@ -880,9 +941,9 @@
 
         function submitMelDayShifts(e) {
             e.preventDefault();
-            const selectedDates = Array.from(document.querySelectorAll('input[name="melShiftDate"]:checked')).map(cb => cb.value);
+            if (selectedShiftDates.size === 0) return;
 
-            selectedDates.forEach(dateStr => {
+            selectedShiftDates.forEach(dateStr => {
                 appState.events.push({
                     id: (Date.now() + Math.random()).toString(),
                     title: "Mel Day Shift",
@@ -896,6 +957,7 @@
                 });
             });
 
+            selectedShiftDates.clear();
             saveData();
             renderCalendar();
             closeAddEventModal();
