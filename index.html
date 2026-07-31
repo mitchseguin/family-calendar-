@@ -1,502 +1,1009 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" class="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bailey Family Dashboard</title>
-  <!-- Google Fonts: Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- FontAwesome Icons CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Planner Dashboard</title>
 
-  <!-- ================= GLOBAL HEADER ================= -->
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand-section">
-        <div class="brand-icon">
-          <i class="fa-solid fa-house-user"></i>
-        </div>
-        <span class="brand-title">Bailey Family Hub</span>
-      </div>
+    <!-- Essential Fallback Styles (Guarantees tabs and layouts work even if CDN is delayed) -->
+    <style>
+        .hidden { display: none !important; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+    </style>
 
-      <!-- Main Navigation Tabs -->
-      <nav class="nav-tabs">
-        <button class="nav-tab-btn active" data-tab="calendar">
-          <i class="fa-solid fa-calendar-days"></i>
-          <span>Calendar</span>
-        </button>
-        <button class="nav-tab-btn" data-tab="grocery">
-          <i class="fa-solid fa-cart-shopping"></i>
-          <span>Grocery List</span>
-        </button>
-        <button class="nav-tab-btn" data-tab="honeydo">
-          <i class="fa-solid fa-list-check"></i>
-          <span>Honey-Do List</span>
-        </button>
-        <button class="nav-tab-btn" data-tab="meals">
-          <i class="fa-solid fa-utensils"></i>
-          <span>Meal Planner</span>
-        </button>
-      </nav>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        mitch: {
+                            light: '#2563eb',
+                            dark: '#60a5fa',
+                            bg: '#eff6ff',
+                            border: '#93c5fd'
+                        },
+                        melissa: {
+                            light: '#9333ea',
+                            dark: '#c084fc',
+                            bg: '#faf5ff',
+                            border: '#e9d5ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-      <!-- Right Header Actions -->
-      <div class="header-actions">
-        <!-- Theme Toggle Button -->
-        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Theme">
-          <i class="fa-solid fa-moon"></i>
-        </button>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        <!-- User Profile Switcher Badge -->
-        <div class="user-profile-badge" id="profile-switcher-btn" title="Click to switch profile">
-          <div class="avatar-circle mitch" id="current-user-avatar">M</div>
-          <div class="user-info">
-            <span class="user-name mitch" id="current-user-name">Mitch</span>
-            <span class="user-role">Logged In</span>
-          </div>
-          <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted); margin-left: 2px;"></i>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ================= MAIN CONTENT WRAPPER ================= -->
-  <main class="main-wrapper">
-
-    <!-- ================= TAB 1: DYNAMIC FAMILY CALENDAR ================= -->
-    <section class="tab-pane active" id="tab-calendar">
-      <!-- Calendar Control Bar -->
-      <div class="calendar-top-bar">
-        <div class="cal-nav-group">
-          <button class="cal-nav-btn" id="cal-prev-btn" title="Previous"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="btn btn-secondary" id="cal-today-btn" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">Today</button>
-          <button class="cal-nav-btn" id="cal-next-btn" title="Next"><i class="fa-solid fa-chevron-right"></i></button>
-          <h2 class="cal-current-label" id="cal-period-label">July 2026</h2>
-        </div>
-
-        <div class="cal-controls-right">
-          <!-- Search Bar -->
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="cal-search-input" class="input-field" placeholder="Search events by title or details...">
-          </div>
-
-          <!-- View Toggle -->
-          <div class="view-toggle-group">
-            <button class="view-btn active" id="view-month-btn">Month</button>
-            <button class="view-btn" id="view-week-btn">Week</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Calendar Container -->
-      <div class="card" style="padding: 1rem;">
-        <!-- Day Names Header Grid -->
-        <div class="calendar-grid-header">
-          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-        </div>
-
-        <!-- Month View Container -->
-        <div class="month-grid" id="month-grid-container">
-          <!-- Dynamically populated by JS -->
-        </div>
-
-        <!-- Week View Container (Hidden by default) -->
-        <div class="week-grid" id="week-grid-container" style="display: none;">
-          <!-- Dynamically populated by JS -->
-        </div>
-      </div>
-
-      <!-- Floating Action Button (+ FAB) -->
-      <button class="fab-btn" id="add-event-fab" title="Add New Event">
-        <i class="fa-solid fa-plus"></i>
-      </button>
-    </section>
-
-    <!-- ================= TAB 2: GROCERY LIST ================= -->
-    <section class="tab-pane" id="tab-grocery">
-      <div class="list-container">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-cart-shopping" style="color: var(--accent-primary);"></i> Family Grocery List</h2>
-          <span class="user-badge" id="grocery-user-indicator">Logged in as Mitch</span>
-        </div>
-
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <form id="grocery-add-form" class="add-item-bar">
-            <input type="text" id="grocery-input" class="input-field" placeholder="Type a grocery item (e.g., Organic Milk, Fresh Apples)..." required>
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Item</button>
-          </form>
-        </div>
-
-        <div class="items-list" id="grocery-items-container">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= TAB 3: MITCH'S HONEY-DO LIST ================= -->
-    <section class="tab-pane" id="tab-honeydo">
-      <div class="list-container">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-list-check" style="color: var(--mitch-color);"></i> Mitch's Honey-Do List</h2>
-          <span class="user-badge" id="honeydo-user-indicator">Logged in as Mitch</span>
-        </div>
-
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <form id="honeydo-add-form" class="add-item-bar">
-            <input type="text" id="honeydo-input" class="input-field" placeholder="Add a task or chore for Mitch..." required>
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Task</button>
-          </form>
-        </div>
-
-        <div class="items-list" id="honeydo-items-container">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= TAB 4: WEEKLY MEAL PLANNER ================= -->
-    <section class="tab-pane" id="tab-meals">
-      <div class="section-header">
-        <h2 class="section-title"><i class="fa-solid fa-utensils" style="color: var(--accent-primary);"></i> Weekly Meal Planner</h2>
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <span class="user-badge" id="meals-user-indicator">Logged in as Mitch</span>
-          <button type="button" class="btn btn-danger" id="clear-week-btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
-            <i class="fa-solid fa-trash-can"></i> Clear Week
-          </button>
-        </div>
-      </div>
-
-      <!-- 7-Day Vertical Table (Sunday to Saturday Top to Bottom) -->
-      <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
-        <div class="meal-table-responsive">
-          <table class="meal-table">
-            <thead>
-              <tr>
-                <th style="width: 140px;">Day</th>
-                <th>Planned Meal & Details</th>
-                <th style="width: 140px; text-align: center;">Chef / Added By</th>
-                <th style="width: 160px; text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody id="meal-table-body">
-              <!-- Dynamically populated 7 days top-to-bottom -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Meal Repertoire Database Section -->
-      <div class="repertoire-section">
-        <div class="section-header" style="margin-bottom: 0.75rem;">
-          <h3 style="font-size: 1.15rem; font-weight: 700;"><i class="fa-solid fa-book-open" style="color: var(--melissa-color); margin-right: 6px;"></i> Meal Repertoire Library</h3>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Save recurring family meals for quick selection</span>
-        </div>
-
-        <form id="repertoire-add-form" style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-          <input type="text" id="repertoire-input" class="input-field" placeholder="Add a meal recipe title (e.g., Taco Tuesday, Grilled Salmon)..." required>
-          <button type="submit" class="btn btn-secondary" style="white-space: nowrap;"><i class="fa-solid fa-bookmark"></i> Save to Repertoire</button>
-        </form>
-
-        <div class="repertoire-grid" id="repertoire-list-container">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ================= MODALS & OVERLAYS ================= -->
-
-  <!-- 1. LOGIN / USER SWITCHER MODAL -->
-  <div class="modal-overlay" id="modal-auth">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-user-lock"></i> Switch Profile / Login</h3>
-        <button class="modal-close-btn" data-close-modal="auth">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">Select your profile and enter password <strong>"bailey"</strong> to proceed.</p>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 4px; }
         
-        <div class="form-group">
-          <label class="form-label">Select Profile</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.5rem;">
-            <button type="button" class="btn btn-secondary user-select-card active" id="auth-select-mitch" style="padding: 1rem; border-color: var(--mitch-pill);">
-              <div class="avatar-circle mitch">M</div>
-              <div style="text-align: left;">
-                <div style="font-weight: 700; color: var(--mitch-color);">Mitch</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">Blue Color Scheme</div>
-              </div>
-            </button>
+        .user-mitch-text { color: #2563eb !important; }
+        .dark .user-mitch-text { color: #60a5fa !important; }
+        .user-mitch-card { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+        .dark .user-mitch-card { background-color: rgba(30, 58, 138, 0.3); border-color: #1e40af; color: #93c5fd; }
 
-            <button type="button" class="btn btn-secondary user-select-card" id="auth-select-melissa" style="padding: 1rem;">
-              <div class="avatar-circle melissa">M</div>
-              <div style="text-align: left;">
-                <div style="font-weight: 700; color: var(--melissa-color);">Melissa</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">Purple Color Scheme</div>
-              </div>
-            </button>
-          </div>
+        .user-melissa-text { color: #9333ea !important; }
+        .dark .user-melissa-text { color: #c084fc !important; }
+        .user-melissa-card { background-color: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
+        .dark .user-melissa-card { background-color: rgba(88, 28, 135, 0.3); border-color: #6b21a8; color: #e9d5ff; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-20">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Logo & App Title -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-2.5 rounded-xl text-white shadow-md">
+                        <i class="fa-solid fa-house-chimney-heart text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none flex items-center gap-2">
+                            Bailey Family Planner
+                        </h1>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Shared Live Hub</span>
+                    </div>
+                </div>
+
+                <!-- User Profile & Theme Switcher Controls -->
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <!-- Profile Switcher Button -->
+                    <button id="userProfileBtn" onclick="openLoginModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-full border transition hover:shadow-sm bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600">
+                        <span id="userBadgeDot" class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                        <span id="userNameLabel" class="text-sm font-semibold text-blue-600 dark:text-blue-400">Mitch</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+                    </button>
+
+                    <!-- Dark Mode Toggle Button -->
+                    <button onclick="toggleTheme()" class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Toggle Light/Dark Theme">
+                        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-1 sm:space-x-4 overflow-x-auto pb-2 custom-scrollbar">
+                <button onclick="switchTab('calendar')" id="tab-calendar" class="tab-btn px-4 py-2.5 text-sm font-medium rounded-lg flex items-center gap-2 transition whitespace-nowrap bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-sm">
+                    <i class="fa-regular fa-calendar-days"></i> Calendar
+                </button>
+                <button onclick="switchTab('groceries')" id="tab-groceries" class="tab-btn px-4 py-2.5 text-sm font-medium rounded-lg flex items-center gap-2 transition whitespace-nowrap text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-cart-shopping"></i> Grocery List
+                    <span id="groceryBadge" class="hidden px-1.5 py-0.5 text-xs bg-emerald-500 text-white rounded-full font-bold">0</span>
+                </button>
+                <button onclick="switchTab('honeydo')" id="tab-honeydo" class="tab-btn px-4 py-2.5 text-sm font-medium rounded-lg flex items-center gap-2 transition whitespace-nowrap text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-list-check"></i> Honey-Do List
+                    <span id="honeyBadge" class="hidden px-1.5 py-0.5 text-xs bg-amber-500 text-white rounded-full font-bold">0</span>
+                </button>
+                <button onclick="switchTab('meals')" id="tab-meals" class="tab-btn px-4 py-2.5 text-sm font-medium rounded-lg flex items-center gap-2 transition whitespace-nowrap text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-utensils"></i> Meal Planner
+                </button>
+            </nav>
         </div>
+    </header>
 
-        <form id="auth-form">
-          <div class="form-group">
-            <label class="form-label" for="auth-password-input">Password</label>
-            <input type="password" id="auth-password-input" class="input-field" placeholder="Enter password..." required autocomplete="current-password">
-            <span id="auth-error-msg" style="color: var(--danger-color); font-size: 0.8rem; display: none; margin-top: 4px;">Invalid password. (Hint: "bailey")</span>
-          </div>
-          <div class="modal-footer" style="padding: 1rem 0 0 0; border: none;">
-            <button type="button" class="btn btn-secondary" data-close-modal="auth">Cancel</button>
-            <button type="submit" class="btn btn-primary">Login & Switch</button>
-          </div>
-        </form>
-      </div>
+    <!-- Main Content Layout -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- TAB 1: CALENDAR SECTION -->
+        <section id="content-calendar" class="space-y-4">
+            <!-- Calendar Header Bar -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row gap-4 items-center justify-between">
+                
+                <!-- Week/Month & Navigation Controls -->
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <!-- Week / Month View Switcher -->
+                    <div class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-700 p-1">
+                        <button onclick="setCalendarView('week')" id="btn-view-week" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm">
+                            Weekly
+                        </button>
+                        <button onclick="setCalendarView('month')" id="btn-view-month" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900">
+                            Monthly
+                        </button>
+                    </div>
+
+                    <!-- Date Navigation Controls -->
+                    <div class="flex items-center gap-1">
+                        <button onclick="navigateCalendar(-1)" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700" title="Previous">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <button onclick="navigateCalendar('today')" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700">
+                            Today
+                        </button>
+                        <button onclick="navigateCalendar(1)" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700" title="Next">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <h2 id="currentRangeLabel" class="text-base sm:text-lg font-bold ml-2">Calendar</h2>
+                </div>
+
+                <!-- Event Search Field -->
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="calendarSearchInput" oninput="renderCalendar()" placeholder="Search events..." class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Display Container -->
+            <div id="calendarGridContainer" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[500px]">
+                <!-- Rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- TAB 2: GROCERY STORE LIST -->
+        <section id="content-groceries" class="hidden space-y-6 max-w-3xl mx-auto">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold">Grocery Store List</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Add items needed. Tap a checkbox to check off or remove items.</p>
+                    </div>
+                    <span class="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full">
+                        <i class="fa-solid fa-basket-shopping text-xl"></i>
+                    </span>
+                </div>
+
+                <!-- Add Grocery Form -->
+                <form onsubmit="addGroceryItem(event)" class="flex gap-2">
+                    <input type="text" id="groceryInput" required placeholder="Add item (e.g., Whole Milk, Avocados...)" class="flex-1 px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </form>
+
+                <!-- Grocery Items Render Area -->
+                <div id="groceryList" class="space-y-2 pt-2"></div>
+            </div>
+        </section>
+
+        <!-- TAB 3: HONEY-DO LIST FOR MITCH -->
+        <section id="content-honeydo" class="hidden space-y-6 max-w-3xl mx-auto">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold">Mitch's Honey-Do List</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">House tasks and chores for Mitch. Check off when completed.</p>
+                    </div>
+                    <span class="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-full">
+                        <i class="fa-solid fa-hammer text-xl"></i>
+                    </span>
+                </div>
+
+                <!-- Add Task Form -->
+                <form onsubmit="addHoneyDoTask(event)" class="flex gap-2">
+                    <input type="text" id="honeyInput" required placeholder="Add chore or task (e.g., Fix garage door sensor...)" class="flex-1 px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <button type="submit" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </form>
+
+                <!-- Honey-Do Tasks Render Area -->
+                <div id="honeyList" class="space-y-2 pt-2"></div>
+            </div>
+        </section>
+
+        <!-- TAB 4: MEAL PLANNER -->
+        <section id="content-meals" class="hidden space-y-6">
+            <!-- Weekly Grid Table -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            Weekly Meal Planner
+                        </h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Plan dinners from Sunday to Saturday. Select from your saved Repertoire or type custom dishes.</p>
+                    </div>
+                </div>
+
+                <!-- 7-Day Meal Grid -->
+                <div id="mealGrid" class="grid grid-cols-1 md:grid-cols-7 gap-3"></div>
+            </div>
+
+            <!-- Meal Repertoire Library Section -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-book-bookmark text-purple-500"></i> Meal Repertoire Library
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Add favorite recipes here so you can quickly assign them to any day of the week.</p>
+
+                <!-- Add Repertoire Form -->
+                <form onsubmit="addRepertoireMeal(event)" class="flex gap-2 max-w-md">
+                    <input type="text" id="repertoireInput" required placeholder="New recipe or meal idea..." class="flex-1 px-4 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow-sm transition">
+                        Add Recipe
+                    </button>
+                </form>
+
+                <!-- Saved Chips -->
+                <div id="repertoireChips" class="flex flex-wrap gap-2 pt-2"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating '+' Button for Event Addition -->
+    <button onclick="openAddEventModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center text-2xl z-20" title="Add Calendar Event">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- EVENT CREATION MODAL -->
+    <div id="eventModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                <h3 class="text-lg font-bold">Add Calendar Event</h3>
+                <button onclick="closeAddEventModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Event Type Tabs -->
+            <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-center text-xs sm:text-sm font-semibold">
+                <button type="button" onclick="setEventTypeForm('standard')" id="btn-type-standard" class="py-2 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm font-bold">
+                    Standard Event
+                </button>
+                <button type="button" onclick="setEventTypeForm('melshift')" id="btn-type-melshift" class="py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800">
+                    Mel Day Shift
+                </button>
+                <button type="button" onclick="setEventTypeForm('mitchplans')" id="btn-type-mitchplans" class="py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800">
+                    Mitch Evening
+                </button>
+            </div>
+
+            <!-- FORM 1: STANDARD EVENT -->
+            <form id="form-type-standard" onsubmit="submitStandardEvent(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Title</label>
+                    <input type="text" id="eventTitle" required placeholder="Family Dinner, Doctor Appointment..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Date</label>
+                        <input type="date" id="eventDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Start Time</label>
+                        <input type="time" id="eventTime" value="12:00" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Duration</label>
+                        <select id="eventDuration" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="30m">30 min</option>
+                            <option value="1h" selected>1 hour</option>
+                            <option value="2h">2 hours</option>
+                            <option value="4h">4 hours</option>
+                            <option value="All Day">All Day</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Location</label>
+                        <input type="text" id="eventLocation" placeholder="Home, Grandma's..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Attendees</label>
+                    <div class="flex flex-wrap gap-3 text-sm">
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="attendee" value="Family" checked class="rounded text-blue-600"> Family</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="attendee" value="Mitch" class="rounded text-blue-600"> Mitch</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="attendee" value="Mel" class="rounded text-blue-600"> Mel</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="attendee" value="Mason" class="rounded text-blue-600"> Mason</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="attendee" value="Emma" class="rounded text-blue-600"> Emma</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Details / Notes</label>
+                    <textarea id="eventDetails" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow transition">
+                    Save Event
+                </button>
+            </form>
+
+            <!-- FORM 2: MEL DAY SHIFT (MULTI-DATE SELECTION) -->
+            <form id="form-type-melshift" onsubmit="submitMelDayShifts(event)" class="space-y-3 hidden">
+                <div class="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg text-xs text-purple-700 dark:text-purple-300">
+                    Automatically adds <strong>"Mel Day Shift" (7:30 AM - 7:30 PM)</strong> for all selected dates below.
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-2">Select Days To Add Shifts</label>
+                    <div id="shiftDateCheckboxes" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-700/50"></div>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow transition">
+                    Mass Add Selected Shifts
+                </button>
+            </form>
+
+            <!-- FORM 3: MITCH EVENING PLANS -->
+            <form id="form-type-mitchplans" onsubmit="submitMitchEveningPlans(event)" class="space-y-3 hidden">
+                <div class="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300">
+                    Automatically blocks out an evening from <strong>5:00 PM to 9:00 PM</strong> for Mitch.
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Plan Title</label>
+                    <input type="text" id="mitchPlanTitle" required placeholder="Squash with Dave, Poker night..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Date</label>
+                    <input type="date" id="mitchPlanDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Details</label>
+                    <textarea id="mitchPlanDetails" rows="2" placeholder="Location, notes..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow transition">
+                    Save Evening Plan
+                </button>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <!-- 2. ADD EVENT TYPE OVERLAY MODAL -->
-  <div class="modal-overlay" id="modal-event-type">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-calendar-plus"></i> Select Event Type</h3>
-        <button class="modal-close-btn" data-close-modal="event-type">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="event-type-selector">
-          <!-- Option 1: Standard Event -->
-          <div class="event-type-card" id="type-opt-standard">
-            <div class="type-icon std"><i class="fa-solid fa-calendar-day"></i></div>
-            <div class="type-details">
-              <h4>Standard Event</h4>
-              <p>Create a custom event with title, description, time, location & attendees.</p>
+    <!-- USER LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <h3 class="text-lg font-bold text-center">Switch Account Profile</h3>
+            
+            <div class="space-y-3">
+                <button onclick="selectProfile('Mitch')" class="w-full p-3 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-between hover:scale-[1.02] transition">
+                    <span><i class="fa-solid fa-user-tie mr-2"></i> Mitch</span>
+                    <span class="text-xs font-normal opacity-70">Font: Blue</span>
+                </button>
+                <button onclick="selectProfile('Melissa')" class="w-full p-3 rounded-xl border border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold flex items-center justify-between hover:scale-[1.02] transition">
+                    <span><i class="fa-solid fa-user-nurse mr-2"></i> Melissa</span>
+                    <span class="text-xs font-normal opacity-70">Font: Purple</span>
+                </button>
             </div>
-          </div>
 
-          <!-- Option 2: Dayshift for Mel -->
-          <div class="event-type-card" id="type-opt-dayshift">
-            <div class="type-icon mel"><i class="fa-solid fa-user-nurse"></i></div>
-            <div class="type-details">
-              <h4>Dayshift for Mel</h4>
-              <p>Multi-select calendar dates to mass-create 7:30 AM – 7:30 PM Mel Day Shifts.</p>
+            <!-- Password Input -->
+            <div id="passwordSection" class="hidden space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p class="text-xs text-slate-500 text-center">Enter password for <strong id="selectedUserSpan"></strong></p>
+                <input type="password" id="loginPasswordInput" placeholder="Password" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <div id="loginError" class="text-xs text-red-500 text-center hidden">Incorrect password. (Hint: bailey)</div>
+                <button onclick="verifyLoginPassword()" class="w-full py-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 font-medium text-sm rounded-lg">
+                    Confirm Log In
+                </button>
             </div>
-          </div>
 
-          <!-- Option 3: Mitch Evening Plans -->
-          <div class="event-type-card" id="type-opt-mitch-evening">
-            <div class="type-icon mitch"><i class="fa-solid fa-moon"></i></div>
-            <div class="type-details">
-              <h4>Mitch Evening Plans</h4>
-              <p>Quickly add evening plans pre-blocked from 5:00 PM – 9:00 PM.</p>
+            <div class="text-center">
+                <button onclick="closeLoginModal()" class="text-xs text-slate-400 hover:underline">Cancel</button>
             </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- 3. STANDARD EVENT FORM MODAL -->
-  <div class="modal-overlay" id="modal-standard-event">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" id="std-modal-heading">Add Standard Event</h3>
-        <button class="modal-close-btn" data-close-modal="standard-event">&times;</button>
-      </div>
-      <form id="standard-event-form">
-        <input type="hidden" id="std-event-id">
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="std-title">Event Title *</label>
-            <input type="text" id="std-title" class="input-field" placeholder="e.g., Soccer Practice, Birthday Party" required>
-          </div>
+    <!-- Application Logic & State Controller -->
+    <script>
+        // Central Application Reactive State Memory
+        const appState = {
+            currentUser: 'Mitch',
+            activeTab: 'calendar',
+            calendarView: 'week', // 'week' or 'month'
+            currentDate: new Date(),
+            events: [
+                { id: '1', title: 'Family Dinner', date: getRelativeDate(0), time: '18:00', duration: '2h', location: 'Grandma\'s', attendees: ['Family'], createdBy: 'Melissa' },
+                { id: '2', title: 'Mel Day Shift', date: getRelativeDate(1), time: '07:30', duration: '12h', location: 'Hospital', attendees: ['Mel'], createdBy: 'Melissa' },
+                { id: '3', title: 'Squash with Dave', date: getRelativeDate(2), time: '17:00', duration: '4h', location: 'Club', attendees: ['Mitch'], createdBy: 'Mitch' }
+            ],
+            groceries: [
+                { id: '1', item: 'Whole Milk', createdBy: 'Melissa' },
+                { id: '2', item: 'Avocados', createdBy: 'Mitch' },
+                { id: '3', item: 'Sourdough Bread', createdBy: 'Melissa' }
+            ],
+            honeyDos: [
+                { id: '1', task: 'Fix garage door sensor', createdBy: 'Melissa' },
+                { id: '2', task: 'Clean back patio gutters', createdBy: 'Mitch' }
+            ],
+            weeklyMeals: {
+                Sunday: 'Homemade Pizza',
+                Monday: 'Spaghetti',
+                Tuesday: 'Tacos',
+                Wednesday: 'Grilled Chicken',
+                Thursday: 'Caesar Salad',
+                Friday: '',
+                Saturday: ''
+            },
+            mealRepertoire: ['Tacos', 'Spaghetti', 'Grilled Chicken', 'Homemade Pizza', 'Caesar Salad'],
+            pendingSelectedUser: null
+        };
 
-          <div class="form-group">
-            <label class="form-label" for="std-details">Details / Description</label>
-            <textarea id="std-details" class="textarea-field" rows="2" placeholder="Add notes or details..."></textarea>
-          </div>
+        function getRelativeDate(offsetDays) {
+            const d = new Date();
+            d.setDate(d.getDate() + offsetDays);
+            return d.toISOString().split('T')[0];
+        }
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <div class="form-group">
-              <label class="form-label" for="std-date">Date *</label>
-              <input type="date" id="std-date" class="input-field" required>
-            </div>
+        // --- LOCAL STORAGE PERSISTENCE ---
+        function loadSavedData() {
+            try {
+                const savedEvents = localStorage.getItem('bailey_events');
+                if (savedEvents) appState.events = JSON.parse(savedEvents);
 
-            <div class="form-group">
-              <label class="form-label" for="std-time">Start Time *</label>
-              <input type="time" id="std-time" class="input-field" value="09:00" required>
-            </div>
-          </div>
+                const savedGroceries = localStorage.getItem('bailey_groceries');
+                if (savedGroceries) appState.groceries = JSON.parse(savedGroceries);
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <div class="form-group">
-              <label class="form-label" for="std-duration">Duration</label>
-              <select id="std-duration" class="select-field">
-                <option value="30 mins">30 minutes</option>
-                <option value="1 hour" selected>1 hour</option>
-                <option value="1.5 hours">1.5 hours</option>
-                <option value="2 hours">2 hours</option>
-                <option value="3 hours">3 hours</option>
-                <option value="All Day">All Day</option>
-              </select>
-            </div>
+                const savedHoney = localStorage.getItem('bailey_honeydo');
+                if (savedHoney) appState.honeyDos = JSON.parse(savedHoney);
 
-            <div class="form-group">
-              <label class="form-label" for="std-location">Location</label>
-              <input type="text" id="std-location" class="input-field" placeholder="e.g., Home, Park, School">
-            </div>
-          </div>
+                const savedMeals = localStorage.getItem('bailey_meals');
+                if (savedMeals) appState.weeklyMeals = JSON.parse(savedMeals);
 
-          <div class="form-group">
-            <label class="form-label">Attendees</label>
-            <div class="checkbox-group">
-              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Family" checked> Family</label>
-              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Mitch"> Mitch</label>
-              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Mel"> Mel</label>
-              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Mason"> Mason</label>
-              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Emma"> Emma</label>
-            </div>
-          </div>
-        </div>
+                const savedRepertoire = localStorage.getItem('bailey_repertoire');
+                if (savedRepertoire) appState.mealRepertoire = JSON.parse(savedRepertoire);
+            } catch (e) {
+                console.warn('Storage sync initialized', e);
+            }
+        }
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-close-modal="standard-event">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Event</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        function saveData() {
+            try {
+                localStorage.setItem('bailey_events', JSON.stringify(appState.events));
+                localStorage.setItem('bailey_groceries', JSON.stringify(appState.groceries));
+                localStorage.setItem('bailey_honeydo', JSON.stringify(appState.honeyDos));
+                localStorage.setItem('bailey_meals', JSON.stringify(appState.weeklyMeals));
+                localStorage.setItem('bailey_repertoire', JSON.stringify(appState.mealRepertoire));
+            } catch (e) {
+                console.warn('Saving error', e);
+            }
+        }
 
-  <!-- 4. DAYSHIFT FOR MEL MODAL -->
-  <div class="modal-overlay" id="modal-dayshift">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" style="color: var(--melissa-color);"><i class="fa-solid fa-user-nurse"></i> Dayshift for Mel</h3>
-        <button class="modal-close-btn" data-close-modal="dayshift">&times;</button>
-      </div>
-      <form id="dayshift-form">
-        <div class="modal-body">
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">Click to select multiple dates for Mel's Day Shift. Each selected day automatically receives a <strong>"Mel Day Shift" (7:30 AM – 7:30 PM)</strong> entry.</p>
+        // --- NAVIGATION & TAB SWITCHING ---
+        function switchTab(tabId) {
+            appState.activeTab = tabId;
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            
+            const activeSection = document.getElementById(`content-${tabId}`);
+            if (activeSection) activeSection.classList.remove('hidden');
 
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-            <button type="button" class="btn btn-secondary" id="ds-prev-month" style="padding: 4px 8px; font-size: 0.8rem;"><i class="fa-solid fa-chevron-left"></i></button>
-            <span id="ds-month-label" style="font-weight: 700; font-size: 0.95rem;">July 2026</span>
-            <button type="button" class="btn btn-secondary" id="ds-next-month" style="padding: 4px 8px; font-size: 0.8rem;"><i class="fa-solid fa-chevron-right"></i></button>
-          </div>
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2.5 text-sm font-medium rounded-lg flex items-center gap-2 transition whitespace-nowrap text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800";
+            });
 
-          <div class="multi-date-picker" id="dayshift-date-grid">
-            <!-- Calendar grid generated dynamically -->
-          </div>
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn px-4 py-2.5 text-sm font-medium rounded-lg flex items-center gap-2 transition whitespace-nowrap bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-sm";
+            }
+        }
 
-          <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-surface-hover); padding: 8px 12px; border-radius: var(--radius-md);">
-            <i class="fa-solid fa-circle-info"></i> Selected dates count: <strong id="ds-selected-count" style="color: var(--melissa-color);">0</strong>
-          </div>
-        </div>
+        function setCalendarView(view) {
+            appState.calendarView = view;
+            document.getElementById('btn-view-week').className = view === 'week' 
+                ? "px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm"
+                : "px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900";
+            
+            document.getElementById('btn-view-month').className = view === 'month' 
+                ? "px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm"
+                : "px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900";
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-close-modal="dayshift">Cancel</button>
-          <button type="submit" class="btn btn-primary" style="background: var(--melissa-pill);">Add Shift Entries</button>
-        </div>
-      </form>
-    </div>
-  </div>
+            renderCalendar();
+        }
 
-  <!-- 5. MITCH EVENING PLANS MODAL -->
-  <div class="modal-overlay" id="modal-mitch-evening">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" style="color: var(--mitch-color);"><i class="fa-solid fa-moon"></i> Mitch Evening Plans</h3>
-        <button class="modal-close-btn" data-close-modal="mitch-evening">&times;</button>
-      </div>
-      <form id="mitch-evening-form">
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="me-title">Title *</label>
-            <input type="text" id="me-title" class="input-field" placeholder="e.g., Poker Night, Softball, Guys Dinner" required>
-          </div>
+        function navigateCalendar(step) {
+            const curr = appState.currentDate;
+            if (step === 'today') {
+                appState.currentDate = new Date();
+            } else if (appState.calendarView === 'week') {
+                curr.setDate(curr.getDate() + (step * 7));
+            } else {
+                curr.setMonth(curr.getMonth() + step);
+            }
+            renderCalendar();
+        }
 
-          <div class="form-group">
-            <label class="form-label" for="me-details">Details / Notes</label>
-            <textarea id="me-details" class="textarea-field" rows="2" placeholder="Optional notes..."></textarea>
-          </div>
+        // --- PROFILE & USER MANAGMENT ---
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('passwordSection').classList.add('hidden');
+            document.getElementById('loginError').classList.add('hidden');
+        }
 
-          <div class="form-group">
-            <label class="form-label" for="me-date">Date *</label>
-            <input type="date" id="me-date" class="input-field" required>
-          </div>
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
 
-          <div style="font-size: 0.85rem; background: var(--mitch-bg); color: var(--mitch-color); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--mitch-border);">
-            <i class="fa-solid fa-clock"></i> Time is pre-blocked automatically from <strong>5:00 PM to 9:00 PM</strong>.
-          </div>
-        </div>
+        function selectProfile(userName) {
+            appState.pendingSelectedUser = userName;
+            document.getElementById('selectedUserSpan').innerText = userName;
+            document.getElementById('passwordSection').classList.remove('hidden');
+            document.getElementById('loginPasswordInput').value = '';
+            document.getElementById('loginPasswordInput').focus();
+        }
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-close-modal="mitch-evening">Cancel</button>
-          <button type="submit" class="btn btn-primary" style="background: var(--mitch-pill);">Save Evening Plan</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        function verifyLoginPassword() {
+            const inputPwd = document.getElementById('loginPasswordInput').value;
+            if (inputPwd === 'bailey') {
+                appState.currentUser = appState.pendingSelectedUser;
+                updateUserUI();
+                closeLoginModal();
+                renderAll();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
 
-  <!-- 6. EVENT DETAILS / VIEW / EDIT / DELETE MODAL -->
-  <div class="modal-overlay" id="modal-event-details">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" id="event-detail-title">Event Details</h3>
-        <button class="modal-close-btn" data-close-modal="event-details">&times;</button>
-      </div>
-      <div class="modal-body" id="event-detail-body">
-        <!-- Populated dynamically -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" id="event-detail-delete-btn"><i class="fa-solid fa-trash"></i> Delete Event</button>
-        <button type="button" class="btn btn-primary" id="event-detail-edit-btn"><i class="fa-solid fa-pen-to-square"></i> Edit Event</button>
-      </div>
-    </div>
-  </div>
+        function updateUserUI() {
+            const user = appState.currentUser;
+            const dot = document.getElementById('userBadgeDot');
+            const label = document.getElementById('userNameLabel');
 
-  <!-- 7. ASSIGN MEAL TO DAY MODAL -->
-  <div class="modal-overlay" id="modal-assign-meal">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" id="assign-meal-heading">Assign Meal for Sunday</h3>
-        <button class="modal-close-btn" data-close-modal="assign-meal">&times;</button>
-      </div>
-      <form id="assign-meal-form">
-        <input type="hidden" id="assign-day-index">
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Pick from Saved Meal Repertoire</label>
-            <select id="meal-repertoire-select" class="select-field">
-              <option value="">-- Choose from saved library --</option>
-            </select>
-          </div>
+            if (user === 'Mitch') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-blue-500";
+                label.className = "text-sm font-semibold text-blue-600 dark:text-blue-400";
+                label.innerText = "Mitch";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-purple-500";
+                label.className = "text-sm font-semibold text-purple-600 dark:text-purple-400";
+                label.innerText = "Melissa";
+            }
+        }
 
-          <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0;">OR ENTER CUSTOM MEAL</div>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = "fa-solid fa-moon text-lg";
+            } else {
+                html.classList.add('dark');
+                icon.className = "fa-solid fa-sun text-lg text-amber-400";
+            }
+        }
 
-          <div class="form-group">
-            <label class="form-label" for="meal-custom-title">Meal Title</label>
-            <input type="text" id="meal-custom-title" class="input-field" placeholder="e.g., Homemade Burgers & Fries">
-          </div>
+        // --- CALENDAR RENDERER ---
+        function renderCalendar() {
+            const container = document.getElementById('calendarGridContainer');
+            const rangeLabel = document.getElementById('currentRangeLabel');
+            const searchQuery = (document.getElementById('calendarSearchInput')?.value || '').toLowerCase();
+            const curr = new Date(appState.currentDate);
 
-          <div class="form-group">
-            <label class="form-label" for="meal-notes">Notes / Chef</label>
-            <input type="text" id="meal-notes" class="input-field" placeholder="e.g., Mitch grilling, Melissa making side salad">
-          </div>
-        </div>
+            // Filter events by search
+            const filteredEvents = appState.events.filter(ev => {
+                if (!searchQuery) return true;
+                return (ev.title && ev.title.toLowerCase().includes(searchQuery)) ||
+                       (ev.details && ev.details.toLowerCase().includes(searchQuery)) ||
+                       (ev.location && ev.location.toLowerCase().includes(searchQuery));
+            });
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-close-modal="assign-meal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Meal Plan</button>
-        </div>
-      </form>
-    </div>
-  </div>
+            if (appState.calendarView === 'week') {
+                // Calculate week bounds (Sunday to Saturday)
+                const startOfWeek = new Date(curr);
+                startOfWeek.setDate(curr.getDate() - curr.getDay());
+                
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-  <!-- JavaScript Modules -->
-  <script type="module" src="js/app.js"></script>
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                rangeLabel.innerText = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getDate()} - ${monthNames[endOfWeek.getMonth()]} ${endOfWeek.getDate()}, ${endOfWeek.getFullYear()}`;
+
+                let html = `<div class="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-slate-700 min-h-[500px]">`;
+                
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(startOfWeek);
+                    dayDate.setDate(startOfWeek.getDate() + i);
+                    const dateStr = dayDate.toISOString().split('T')[0];
+                    const isToday = new Date().toISOString().split('T')[0] === dateStr;
+
+                    const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+
+                    html += `
+                        <div class="p-3 ${isToday ? 'bg-blue-50/40 dark:bg-slate-700/30' : ''} space-y-2">
+                            <div class="flex md:flex-col items-baseline justify-between md:items-start border-b border-slate-100 dark:border-slate-700/50 pb-1">
+                                <span class="text-xs font-bold uppercase text-slate-400">${dayDate.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                                <span class="text-sm font-bold ${isToday ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : ''}">${dayDate.getDate()}</span>
+                            </div>
+                            <div class="space-y-1.5 pt-1">
+                    `;
+
+                    dayEvents.forEach(ev => {
+                        const isMitch = ev.createdBy === 'Mitch';
+                        const colorStyle = isMitch ? 'user-mitch-card' : 'user-melissa-card';
+
+                        html += `
+                            <div class="p-2 text-xs rounded-lg border shadow-xs ${colorStyle} relative group">
+                                <div class="font-bold flex items-center justify-between">
+                                    <span>${escapeHtml(ev.title)}</span>
+                                    <button onclick="deleteEvent('${ev.id}')" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition" title="Delete">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                    </button>
+                                </div>
+                                <div class="text-[11px] opacity-80">${ev.time} (${ev.duration || '1h'})</div>
+                                ${ev.location ? `<div class="text-[10px] opacity-75"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(ev.location)}</div>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    if (dayEvents.length === 0) {
+                        html += `<div class="text-[11px] text-slate-300 dark:text-slate-600 italic pt-2">No events</div>`;
+                    }
+
+                    html += `</div></div>`;
+                }
+
+                html += `</div>`;
+                container.innerHTML = html;
+
+            } else {
+                // Monthly View
+                const year = curr.getFullYear();
+                const month = curr.getMonth();
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+
+                rangeLabel.innerText = curr.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+                let html = `
+                    <div class="grid grid-cols-7 bg-slate-100 dark:bg-slate-700 text-center text-xs font-bold uppercase py-2 border-b border-slate-200 dark:border-slate-600 text-slate-500">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div class="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-200 dark:divide-slate-700 min-h-[500px]">
+                `;
+
+                // Empty padding slots
+                for (let p = 0; p < firstDay.getDay(); p++) {
+                    html += `<div class="bg-slate-50/50 dark:bg-slate-800/30 p-1 min-h-[80px]"></div>`;
+                }
+
+                for (let d = 1; d <= lastDay.getDate(); d++) {
+                    const dateObj = new Date(year, month, d);
+                    const dateStr = dateObj.toISOString().split('T')[0];
+                    const isToday = new Date().toISOString().split('T')[0] === dateStr;
+                    const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+
+                    html += `
+                        <div class="p-1.5 min-h-[90px] ${isToday ? 'bg-blue-50/30 dark:bg-slate-700/20' : ''}">
+                            <div class="text-right text-xs font-bold ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}">${d}</div>
+                            <div class="space-y-1 mt-1">
+                    `;
+
+                    dayEvents.forEach(ev => {
+                        const isMitch = ev.createdBy === 'Mitch';
+                        const badgeStyle = isMitch ? 'bg-blue-600 text-white' : 'bg-purple-600 text-white';
+                        html += `
+                            <div class="text-[10px] px-1.5 py-0.5 rounded truncate ${badgeStyle}" title="${escapeHtml(ev.title)}">
+                                ${ev.time} ${escapeHtml(ev.title)}
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                }
+
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+        }
+
+        // --- GROCERY LIST RENDERER ---
+        function renderGroceries() {
+            const container = document.getElementById('groceryList');
+            const badge = document.getElementById('groceryBadge');
+            const list = appState.groceries;
+
+            if (list.length > 0) {
+                badge.innerText = list.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 text-sm py-6 italic">Grocery list is currently empty!</p>`;
+                return;
+            }
+
+            container.innerHTML = list.map(item => {
+                const isMitch = item.createdBy === 'Mitch';
+                const textColor = isMitch ? 'user-mitch-text' : 'user-melissa-text';
+                
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 hover:bg-white dark:hover:bg-slate-700 transition">
+                        <span class="font-semibold text-sm ${textColor}">${escapeHtml(item.item)}</span>
+                        <button onclick="removeGrocery('${item.id}')" class="text-emerald-600 hover:text-emerald-700 p-1 flex items-center gap-1 text-xs font-bold" title="Complete & Remove">
+                            <i class="fa-regular fa-square-check text-xl"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- HONEY-DO LIST RENDERER ---
+        function renderHoneyDo() {
+            const container = document.getElementById('honeyList');
+            const badge = document.getElementById('honeyBadge');
+            const list = appState.honeyDos;
+
+            if (list.length > 0) {
+                badge.innerText = list.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 text-sm py-6 italic">No pending tasks on Mitch's list!</p>`;
+                return;
+            }
+
+            container.innerHTML = list.map(item => {
+                const isMitch = item.createdBy === 'Mitch';
+                const textColor = isMitch ? 'user-mitch-text' : 'user-melissa-text';
+
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 hover:bg-white dark:hover:bg-slate-700 transition">
+                        <span class="font-semibold text-sm ${textColor}">${escapeHtml(item.task)}</span>
+                        <button onclick="removeHoneyDo('${item.id}')" class="text-amber-600 hover:text-amber-700 p-1 flex items-center gap-1 text-xs font-bold" title="Done">
+                            <i class="fa-regular fa-square-check text-xl"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- MEAL PLANNER RENDERER ---
+        function renderMealPlanner() {
+            const grid = document.getElementById('mealGrid');
+            const chips = document.getElementById('repertoireChips');
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const meals = appState.weeklyMeals;
+            const repertoire = appState.mealRepertoire;
+
+            grid.innerHTML = days.map(day => {
+                const currentMeal = meals[day] || '';
+                const options = repertoire.map(m => `<option value="${escapeHtml(m)}" ${m === currentMeal ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('');
+
+                return `
+                    <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/40 space-y-2">
+                        <span class="text-xs font-bold uppercase text-slate-400">${day}</span>
+                        
+                        <!-- Select Pick from Repertoire -->
+                        <select onchange="updateMealDay('${day}', this.value)" class="w-full text-xs p-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700">
+                            <option value="">-- Pick Repertoire --</option>
+                            ${options}
+                        </select>
+
+                        <!-- Custom Meal Entry Field -->
+                        <input type="text" value="${escapeHtml(currentMeal)}" placeholder="Or type meal..." onchange="updateMealDay('${day}', this.value)" class="w-full text-xs p-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 font-semibold text-purple-600 dark:text-purple-400">
+                    </div>
+                `;
+            }).join('');
+
+            chips.innerHTML = repertoire.map(meal => `
+                <span class="px-3 py-1 bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
+                    ${escapeHtml(meal)}
+                </span>
+            `).join('');
+        }
+
+        // --- FORM SUBMISSIONS & MODALS ---
+        function openAddEventModal() {
+            document.getElementById('eventModal').classList.remove('hidden');
+            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('mitchPlanDate').value = new Date().toISOString().split('T')[0];
+            populateShiftCheckboxes();
+        }
+
+        function closeAddEventModal() {
+            document.getElementById('eventModal').classList.add('hidden');
+        }
+
+        function setEventTypeForm(type) {
+            document.getElementById('form-type-standard').classList.add('hidden');
+            document.getElementById('form-type-melshift').classList.add('hidden');
+            document.getElementById('form-type-mitchplans').classList.add('hidden');
+
+            document.getElementById('btn-type-standard').className = "py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800";
+            document.getElementById('btn-type-melshift').className = "py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800";
+            document.getElementById('btn-type-mitchplans').className = "py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800";
+
+            document.getElementById(`form-type-${type}`).classList.remove('hidden');
+            document.getElementById(`btn-type-${type}`).className = "py-2 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm font-bold";
+        }
+
+        function populateShiftCheckboxes() {
+            const container = document.getElementById('shiftDateCheckboxes');
+            const today = new Date();
+            let html = '';
+
+            for (let i = 0; i < 14; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                const dateStr = d.toISOString().split('T')[0];
+                const labelStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                html += `
+                    <label class="flex items-center gap-2 text-xs font-medium cursor-pointer p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600">
+                        <input type="checkbox" name="melShiftDate" value="${dateStr}" class="rounded text-purple-600">
+                        <span>${labelStr}</span>
+                    </label>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function submitStandardEvent(e) {
+            e.preventDefault();
+            const checkedAttendees = Array.from(document.querySelectorAll('input[name="attendee"]:checked')).map(cb => cb.value);
+
+            const newEvent = {
+                id: Date.now().toString(),
+                title: document.getElementById('eventTitle').value,
+                date: document.getElementById('eventDate').value,
+                time: document.getElementById('eventTime').value,
+                duration: document.getElementById('eventDuration').value,
+                location: document.getElementById('eventLocation').value,
+                details: document.getElementById('eventDetails').value,
+                attendees: checkedAttendees,
+                createdBy: appState.currentUser
+            };
+
+            appState.events.push(newEvent);
+            saveData();
+            renderCalendar();
+            closeAddEventModal();
+            document.getElementById('form-type-standard').reset();
+        }
+
+        function submitMelDayShifts(e) {
+            e.preventDefault();
+            const selectedDates = Array.from(document.querySelectorAll('input[name="melShiftDate"]:checked')).map(cb => cb.value);
+
+            selectedDates.forEach(dateStr => {
+                appState.events.push({
+                    id: (Date.now() + Math.random()).toString(),
+                    title: "Mel Day Shift",
+                    date: dateStr,
+                    time: "07:30",
+                    duration: "12h",
+                    location: "Hospital",
+                    details: "Regular Day Shift (7:30am - 7:30pm)",
+                    attendees: ["Mel"],
+                    createdBy: "Melissa"
+                });
+            });
+
+            saveData();
+            renderCalendar();
+            closeAddEventModal();
+        }
+
+        function submitMitchEveningPlans(e) {
+            e.preventDefault();
+            appState.events.push({
+                id: Date.now().toString(),
+                title: document.getElementById('mitchPlanTitle').value,
+                date: document.getElementById('mitchPlanDate').value,
+                time: "17:00",
+                duration: "4h",
+                location: "Evening Block",
+                details: document.getElementById('mitchPlanDetails').value,
+                attendees: ["Mitch"],
+                createdBy: "Mitch"
+            });
+
+            saveData();
+            renderCalendar();
+            closeAddEventModal();
+            document.getElementById('form-type-mitchplans').reset();
+        }
+
+        function deleteEvent(id) {
+            appState.events = appState.events.filter(e => e.id !== id);
+            saveData();
+            renderCalendar();
+        }
+
+        function addGroceryItem(e) {
+            e.preventDefault();
+            const input = document.getElementById('groceryInput');
+            if (input.value.trim()) {
+                appState.groceries.push({
+                    id: Date.now().toString(),
+                    item: input.value.trim(),
+                    createdBy: appState.currentUser
+                });
+                input.value = '';
+                saveData();
+                renderGroceries();
+            }
+        }
+
+        function removeGrocery(id) {
+            appState.groceries = appState.groceries.filter(g => g.id !== id);
+            saveData();
+            renderGroceries();
+        }
+
+        function addHoneyDoTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('honeyInput');
+            if (input.value.trim()) {
+                appState.honeyDos.push({
+                    id: Date.now().toString(),
+                    task: input.value.trim(),
+                    createdBy: appState.currentUser
+                });
+                input.value = '';
+                saveData();
+                renderHoneyDo();
+            }
+        }
+
+        function removeHoneyDo(id) {
+            appState.honeyDos = appState.honeyDos.filter(h => h.id !== id);
+            saveData();
+            renderHoneyDo();
+        }
+
+        function updateMealDay(day, mealStr) {
+            appState.weeklyMeals[day] = mealStr;
+            saveData();
+            renderMealPlanner();
+        }
+
+        function addRepertoireMeal(e) {
+            e.preventDefault();
+            const input = document.getElementById('repertoireInput');
+            if (input.value.trim()) {
+                appState.mealRepertoire.push(input.value.trim());
+                input.value = '';
+                saveData();
+                renderMealPlanner();
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function renderAll() {
+            renderCalendar();
+            renderGroceries();
+            renderHoneyDo();
+            renderMealPlanner();
+        }
+
+        // Initialize application on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedData();
+            updateUserUI();
+            renderAll();
+        });
+    </script>
 </body>
 </html>
