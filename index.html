@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bailey Family Dashboard</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ================= GLOBAL HEADER ================= -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-icon">
+          <i class="fa-solid fa-house-user"></i>
+        </div>
+        <span class="brand-title">Bailey Family Hub</span>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" data-tab="calendar">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendar</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="grocery">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Grocery List</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="honeydo">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Honey-Do List</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="meals">
+          <i class="fa-solid fa-utensils"></i>
+          <span>Meal Planner</span>
+        </button>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="header-actions">
+        <!-- Theme Toggle Button -->
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <!-- User Profile Switcher Badge -->
+        <div class="user-profile-badge" id="profile-switcher-btn" title="Click to switch profile">
+          <div class="avatar-circle mitch" id="current-user-avatar">M</div>
+          <div class="user-info">
+            <span class="user-name mitch" id="current-user-name">Mitch</span>
+            <span class="user-role">Logged In</span>
+          </div>
+          <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted); margin-left: 2px;"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT WRAPPER ================= -->
+  <main class="main-wrapper">
+
+    <!-- ================= TAB 1: DYNAMIC FAMILY CALENDAR ================= -->
+    <section class="tab-pane active" id="tab-calendar">
+      <!-- Calendar Control Bar -->
+      <div class="calendar-top-bar">
+        <div class="cal-nav-group">
+          <button class="cal-nav-btn" id="cal-prev-btn" title="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="btn btn-secondary" id="cal-today-btn" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">Today</button>
+          <button class="cal-nav-btn" id="cal-next-btn" title="Next"><i class="fa-solid fa-chevron-right"></i></button>
+          <h2 class="cal-current-label" id="cal-period-label">July 2026</h2>
+        </div>
+
+        <div class="cal-controls-right">
+          <!-- Search Bar -->
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="cal-search-input" class="input-field" placeholder="Search events by title or details...">
+          </div>
+
+          <!-- View Toggle -->
+          <div class="view-toggle-group">
+            <button class="view-btn active" id="view-month-btn">Month</button>
+            <button class="view-btn" id="view-week-btn">Week</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar Container -->
+      <div class="card" style="padding: 1rem;">
+        <!-- Day Names Header Grid -->
+        <div class="calendar-grid-header">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+
+        <!-- Month View Container -->
+        <div class="month-grid" id="month-grid-container">
+          <!-- Dynamically populated by JS -->
+        </div>
+
+        <!-- Week View Container (Hidden by default) -->
+        <div class="week-grid" id="week-grid-container" style="display: none;">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
+
+      <!-- Floating Action Button (+ FAB) -->
+      <button class="fab-btn" id="add-event-fab" title="Add New Event">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+    </section>
+
+    <!-- ================= TAB 2: GROCERY LIST ================= -->
+    <section class="tab-pane" id="tab-grocery">
+      <div class="list-container">
+        <div class="section-header">
+          <h2 class="section-title"><i class="fa-solid fa-cart-shopping" style="color: var(--accent-primary);"></i> Family Grocery List</h2>
+          <span class="user-badge" id="grocery-user-indicator">Logged in as Mitch</span>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <form id="grocery-add-form" class="add-item-bar">
+            <input type="text" id="grocery-input" class="input-field" placeholder="Type a grocery item (e.g., Organic Milk, Fresh Apples)..." required>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Item</button>
+          </form>
+        </div>
+
+        <div class="items-list" id="grocery-items-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: MITCH'S HONEY-DO LIST ================= -->
+    <section class="tab-pane" id="tab-honeydo">
+      <div class="list-container">
+        <div class="section-header">
+          <h2 class="section-title"><i class="fa-solid fa-list-check" style="color: var(--mitch-color);"></i> Mitch's Honey-Do List</h2>
+          <span class="user-badge" id="honeydo-user-indicator">Logged in as Mitch</span>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <form id="honeydo-add-form" class="add-item-bar">
+            <input type="text" id="honeydo-input" class="input-field" placeholder="Add a task or chore for Mitch..." required>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Task</button>
+          </form>
+        </div>
+
+        <div class="items-list" id="honeydo-items-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: WEEKLY MEAL PLANNER ================= -->
+    <section class="tab-pane" id="tab-meals">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fa-solid fa-utensils" style="color: var(--accent-primary);"></i> Weekly Meal Planner</h2>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span class="user-badge" id="meals-user-indicator">Logged in as Mitch</span>
+          <button type="button" class="btn btn-danger" id="clear-week-btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+            <i class="fa-solid fa-trash-can"></i> Clear Week
+          </button>
+        </div>
+      </div>
+
+      <!-- 7-Day Vertical Table (Sunday to Saturday Top to Bottom) -->
+      <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+        <div class="meal-table-responsive">
+          <table class="meal-table">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Day</th>
+                <th>Planned Meal & Details</th>
+                <th style="width: 140px; text-align: center;">Chef / Added By</th>
+                <th style="width: 160px; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="meal-table-body">
+              <!-- Dynamically populated 7 days top-to-bottom -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Meal Repertoire Database Section -->
+      <div class="repertoire-section">
+        <div class="section-header" style="margin-bottom: 0.75rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 700;"><i class="fa-solid fa-book-open" style="color: var(--melissa-color); margin-right: 6px;"></i> Meal Repertoire Library</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Save recurring family meals for quick selection</span>
+        </div>
+
+        <form id="repertoire-add-form" style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+          <input type="text" id="repertoire-input" class="input-field" placeholder="Add a meal recipe title (e.g., Taco Tuesday, Grilled Salmon)..." required>
+          <button type="submit" class="btn btn-secondary" style="white-space: nowrap;"><i class="fa-solid fa-bookmark"></i> Save to Repertoire</button>
+        </form>
+
+        <div class="repertoire-grid" id="repertoire-list-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS & OVERLAYS ================= -->
+
+  <!-- 1. LOGIN / USER SWITCHER MODAL -->
+  <div class="modal-overlay" id="modal-auth">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-user-lock"></i> Switch Profile / Login</h3>
+        <button class="modal-close-btn" data-close-modal="auth">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">Select your profile and enter password <strong>"bailey"</strong> to proceed.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Select Profile</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <button type="button" class="btn btn-secondary user-select-card active" id="auth-select-mitch" style="padding: 1rem; border-color: var(--mitch-pill);">
+              <div class="avatar-circle mitch">M</div>
+              <div style="text-align: left;">
+                <div style="font-weight: 700; color: var(--mitch-color);">Mitch</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Blue Color Scheme</div>
+              </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary user-select-card" id="auth-select-melissa" style="padding: 1rem;">
+              <div class="avatar-circle melissa">M</div>
+              <div style="text-align: left;">
+                <div style="font-weight: 700; color: var(--melissa-color);">Melissa</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Purple Color Scheme</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <form id="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="auth-password-input">Password</label>
+            <input type="password" id="auth-password-input" class="input-field" placeholder="Enter password..." required autocomplete="current-password">
+            <span id="auth-error-msg" style="color: var(--danger-color); font-size: 0.8rem; display: none; margin-top: 4px;">Invalid password. (Hint: "bailey")</span>
+          </div>
+          <div class="modal-footer" style="padding: 1rem 0 0 0; border: none;">
+            <button type="button" class="btn btn-secondary" data-close-modal="auth">Cancel</button>
+            <button type="submit" class="btn btn-primary">Login & Switch</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ADD EVENT TYPE OVERLAY MODAL -->
+  <div class="modal-overlay" id="modal-event-type">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-calendar-plus"></i> Select Event Type</h3>
+        <button class="modal-close-btn" data-close-modal="event-type">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="event-type-selector">
+          <!-- Option 1: Standard Event -->
+          <div class="event-type-card" id="type-opt-standard">
+            <div class="type-icon std"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="type-details">
+              <h4>Standard Event</h4>
+              <p>Create a custom event with title, description, time, location & attendees.</p>
+            </div>
+          </div>
+
+          <!-- Option 2: Dayshift for Mel -->
+          <div class="event-type-card" id="type-opt-dayshift">
+            <div class="type-icon mel"><i class="fa-solid fa-user-nurse"></i></div>
+            <div class="type-details">
+              <h4>Dayshift for Mel</h4>
+              <p>Multi-select calendar dates to mass-create 7:30 AM – 7:30 PM Mel Day Shifts.</p>
+            </div>
+          </div>
+
+          <!-- Option 3: Mitch Evening Plans -->
+          <div class="event-type-card" id="type-opt-mitch-evening">
+            <div class="type-icon mitch"><i class="fa-solid fa-moon"></i></div>
+            <div class="type-details">
+              <h4>Mitch Evening Plans</h4>
+              <p>Quickly add evening plans pre-blocked from 5:00 PM – 9:00 PM.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. STANDARD EVENT FORM MODAL -->
+  <div class="modal-overlay" id="modal-standard-event">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="std-modal-heading">Add Standard Event</h3>
+        <button class="modal-close-btn" data-close-modal="standard-event">&times;</button>
+      </div>
+      <form id="standard-event-form">
+        <input type="hidden" id="std-event-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="std-title">Event Title *</label>
+            <input type="text" id="std-title" class="input-field" placeholder="e.g., Soccer Practice, Birthday Party" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="std-details">Details / Description</label>
+            <textarea id="std-details" class="textarea-field" rows="2" placeholder="Add notes or details..."></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="std-date">Date *</label>
+              <input type="date" id="std-date" class="input-field" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="std-time">Start Time *</label>
+              <input type="time" id="std-time" class="input-field" value="09:00" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="std-duration">Duration</label>
+              <select id="std-duration" class="select-field">
+                <option value="30 mins">30 minutes</option>
+                <option value="1 hour" selected>1 hour</option>
+                <option value="1.5 hours">1.5 hours</option>
+                <option value="2 hours">2 hours</option>
+                <option value="3 hours">3 hours</option>
+                <option value="All Day">All Day</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="std-location">Location</label>
+              <input type="text" id="std-location" class="input-field" placeholder="e.g., Home, Park, School">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Attendees</label>
+            <div class="checkbox-group">
+              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Family" checked> Family</label>
+              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Mitch"> Mitch</label>
+              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Mel"> Mel</label>
+              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Mason"> Mason</label>
+              <label class="custom-checkbox-label"><input type="checkbox" name="attendees" value="Emma"> Emma</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="standard-event">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. DAYSHIFT FOR MEL MODAL -->
+  <div class="modal-overlay" id="modal-dayshift">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--melissa-color);"><i class="fa-solid fa-user-nurse"></i> Dayshift for Mel</h3>
+        <button class="modal-close-btn" data-close-modal="dayshift">&times;</button>
+      </div>
+      <form id="dayshift-form">
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">Click to select multiple dates for Mel's Day Shift. Each selected day automatically receives a <strong>"Mel Day Shift" (7:30 AM – 7:30 PM)</strong> entry.</p>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+            <button type="button" class="btn btn-secondary" id="ds-prev-month" style="padding: 4px 8px; font-size: 0.8rem;"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="ds-month-label" style="font-weight: 700; font-size: 0.95rem;">July 2026</span>
+            <button type="button" class="btn btn-secondary" id="ds-next-month" style="padding: 4px 8px; font-size: 0.8rem;"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+
+          <div class="multi-date-picker" id="dayshift-date-grid">
+            <!-- Calendar grid generated dynamically -->
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-surface-hover); padding: 8px 12px; border-radius: var(--radius-md);">
+            <i class="fa-solid fa-circle-info"></i> Selected dates count: <strong id="ds-selected-count" style="color: var(--melissa-color);">0</strong>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="dayshift">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: var(--melissa-pill);">Add Shift Entries</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. MITCH EVENING PLANS MODAL -->
+  <div class="modal-overlay" id="modal-mitch-evening">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--mitch-color);"><i class="fa-solid fa-moon"></i> Mitch Evening Plans</h3>
+        <button class="modal-close-btn" data-close-modal="mitch-evening">&times;</button>
+      </div>
+      <form id="mitch-evening-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="me-title">Title *</label>
+            <input type="text" id="me-title" class="input-field" placeholder="e.g., Poker Night, Softball, Guys Dinner" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="me-details">Details / Notes</label>
+            <textarea id="me-details" class="textarea-field" rows="2" placeholder="Optional notes..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="me-date">Date *</label>
+            <input type="date" id="me-date" class="input-field" required>
+          </div>
+
+          <div style="font-size: 0.85rem; background: var(--mitch-bg); color: var(--mitch-color); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--mitch-border);">
+            <i class="fa-solid fa-clock"></i> Time is pre-blocked automatically from <strong>5:00 PM to 9:00 PM</strong>.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="mitch-evening">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: var(--mitch-pill);">Save Evening Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. EVENT DETAILS / VIEW / EDIT / DELETE MODAL -->
+  <div class="modal-overlay" id="modal-event-details">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="event-detail-title">Event Details</h3>
+        <button class="modal-close-btn" data-close-modal="event-details">&times;</button>
+      </div>
+      <div class="modal-body" id="event-detail-body">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="event-detail-delete-btn"><i class="fa-solid fa-trash"></i> Delete Event</button>
+        <button type="button" class="btn btn-primary" id="event-detail-edit-btn"><i class="fa-solid fa-pen-to-square"></i> Edit Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. ASSIGN MEAL TO DAY MODAL -->
+  <div class="modal-overlay" id="modal-assign-meal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="assign-meal-heading">Assign Meal for Sunday</h3>
+        <button class="modal-close-btn" data-close-modal="assign-meal">&times;</button>
+      </div>
+      <form id="assign-meal-form">
+        <input type="hidden" id="assign-day-index">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Pick from Saved Meal Repertoire</label>
+            <select id="meal-repertoire-select" class="select-field">
+              <option value="">-- Choose from saved library --</option>
+            </select>
+          </div>
+
+          <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0;">OR ENTER CUSTOM MEAL</div>
+
+          <div class="form-group">
+            <label class="form-label" for="meal-custom-title">Meal Title</label>
+            <input type="text" id="meal-custom-title" class="input-field" placeholder="e.g., Homemade Burgers & Fries">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="meal-notes">Notes / Chef</label>
+            <input type="text" id="meal-notes" class="input-field" placeholder="e.g., Mitch grilling, Melissa making side salad">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="assign-meal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Meal Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
