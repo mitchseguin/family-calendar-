@@ -485,8 +485,9 @@
             activeTab: 'calendar',
             calendarView: 'month',
             currentDate: new Date(),
-            notifiedEventIds: new Set(),
             hasInitializedNotificationTracking: false,
+            seenActivityIds: new Set(),
+            activityLog: [],
             notifications: [],
             unreadCount: 0,
             events: [
@@ -588,20 +589,115 @@
             appState.notifications.slice().reverse().forEach(n => {
                 const isMel = n.author === 'Mel' || n.author === 'Melissa';
                 const item = document.createElement('div');
-                item.className = "p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition flex items-start gap-2.5";
+                item.onclick = () => handleNotificationClick(n.id);
+                item.className = "p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition flex items-start gap-2.5 cursor-pointer group";
+
+                let tabIcon = 'fa-bell';
+                let tabColor = 'text-amber-500';
+                if (n.targetTab === 'calendar') { tabIcon = 'fa-calendar-days'; tabColor = 'text-blue-500'; }
+                else if (n.targetTab === 'grocery') { tabIcon = 'fa-cart-shopping'; tabColor = 'text-emerald-500'; }
+                else if (n.targetTab === 'honey-do') { tabIcon = 'fa-list-check'; tabColor = 'text-indigo-500'; }
+                else if (n.targetTab === 'meals') { tabIcon = 'fa-utensils'; tabColor = 'text-amber-500'; }
+
                 item.innerHTML = `
                     <div class="w-7 h-7 rounded-lg ${isMel ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-300' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300'} flex items-center justify-center shrink-0 text-xs mt-0.5 font-bold">
                         <i class="fa-solid ${isMel ? 'fa-user-nurse' : 'fa-user-gear'}"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-tight">
-                            <span class="${isMel ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'} font-bold">${n.author}</span> ${n.action}
+                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-tight flex items-center justify-between gap-1">
+                            <span class="truncate"><span class="${isMel ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'} font-bold">${n.author}</span> ${n.action}</span>
+                            <i class="fa-solid ${tabIcon} ${tabColor} text-[10px] shrink-0"></i>
                         </div>
-                        <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">${n.time}</div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 flex items-center justify-between">
+                            <span>${n.time}</span>
+                            <span class="text-blue-600 dark:text-blue-400 font-semibold group-hover:underline">View →</span>
+                        </div>
                     </div>
                 `;
                 list.appendChild(item);
             });
+        }
+
+        function handleNotificationClick(notifId) {
+            const n = appState.notifications.find(item => item.id === notifId || String(item.id) === String(notifId));
+            if (!n) return;
+
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+
+            if (n.targetTab) {
+                switchTab(n.targetTab);
+            }
+
+            if (n.targetTab === 'calendar' && n.eventId) {
+                const ev = appState.events.find(e => e.id === n.eventId || String(e.id) === String(n.eventId));
+                if (ev) {
+                    setTimeout(() => {
+                        openEditEventModal(ev);
+                    }, 100);
+                }
+            }
+        }
+
+        function logActivity(action, targetTab, eventId = null) {
+            const author = (appState.currentUser === 'Melissa' || appState.currentUser === 'Mel') ? 'Mel' : (appState.currentUser || 'Mitch');
+            const newActivity = {
+                id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 6),
+                author: author,
+                action: action,
+                targetTab: targetTab,
+                eventId: eventId,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            if (!appState.activityLog) appState.activityLog = [];
+            appState.activityLog.push(newActivity);
+            if (appState.activityLog.length > 40) appState.activityLog.shift();
+
+            if (!appState.seenActivityIds) appState.seenActivityIds = new Set();
+            appState.seenActivityIds.add(newActivity.id);
+
+            const existing = appState.notifications.find(item => item.id === newActivity.id);
+            if (!existing) {
+                appState.notifications.push(newActivity);
+            }
+
+            syncToCloud();
+        }
+
+        function processCloudActivities(activityLog) {
+            if (!Array.isArray(activityLog)) return;
+            if (!appState.seenActivityIds) appState.seenActivityIds = new Set();
+
+            const isCurrentMel = appState.currentUser === 'Melissa' || appState.currentUser === 'Mel';
+            const currentAuthorName = isCurrentMel ? 'Mel' : 'Mitch';
+
+            let hasNewOppositeActivity = false;
+
+            activityLog.forEach(act => {
+                if (!appState.seenActivityIds.has(act.id)) {
+                    appState.seenActivityIds.add(act.id);
+                    const isOpposite = act.author !== currentAuthorName;
+
+                    const existing = appState.notifications.find(n => n.id === act.id);
+                    if (!existing) {
+                        appState.notifications.push(act);
+                    }
+
+                    if (isOpposite && appState.hasInitializedNotificationTracking) {
+                        appState.unreadCount++;
+                        hasNewOppositeActivity = true;
+                    }
+                }
+            });
+
+            if (!appState.hasInitializedNotificationTracking) {
+                appState.hasInitializedNotificationTracking = true;
+            }
+
+            if (hasNewOppositeActivity) {
+                updateBellBadge();
+            }
         }
 
         function clearNotifications() {
@@ -621,46 +717,6 @@
             }
         });
 
-        function checkOppositeUserNotifications(newEventsList) {
-            if (!appState.isLoggedIn || !appState.currentUser) return;
-
-            const isCurrentMitch = appState.currentUser === 'Mitch';
-            const oppositeUser = isCurrentMitch ? 'Melissa' : 'Mitch';
-            const oppositeAltName = isCurrentMitch ? 'Mel' : 'Mitch';
-
-            // First time initialization: populate known IDs without alerting
-            if (!appState.hasInitializedNotificationTracking) {
-                newEventsList.forEach(ev => appState.notifiedEventIds.add(ev.id));
-                appState.hasInitializedNotificationTracking = true;
-                return;
-            }
-
-            // Find new events created by opposite user
-            const newOppositeEvents = newEventsList.filter(ev => {
-                const isByOpposite = ev.createdBy === oppositeUser || ev.createdBy === oppositeAltName;
-                return isByOpposite && !appState.notifiedEventIds.has(ev.id);
-            });
-
-            if (newOppositeEvents.length > 0) {
-                const authorName = isCurrentMitch ? 'Mel' : 'Mitch';
-                newOppositeEvents.forEach(ev => {
-                    appState.notifiedEventIds.add(ev.id);
-                    appState.notifications.push({
-                        id: Date.now() + Math.random(),
-                        author: authorName,
-                        action: `added "${ev.title}" on ${ev.date}`,
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    });
-                    appState.unreadCount++;
-                });
-
-                updateBellBadge();
-            }
-
-            // Always update all current event IDs into notified set
-            newEventsList.forEach(ev => appState.notifiedEventIds.add(ev.id));
-        }
-
         function handleLogin(e) {
             e.preventDefault();
             const passwordInput = document.getElementById('login-password');
@@ -671,13 +727,12 @@
             if (pwd === validPwd) {
                 appState.currentUser = isMitch ? 'Mitch' : 'Melissa';
                 appState.isLoggedIn = true;
-                appState.hasInitializedNotificationTracking = false;
                 passwordInput.value = '';
                 document.getElementById('login-error-msg').classList.add('hidden');
                 document.getElementById('login-modal').classList.add('hidden');
 
                 updateUserBadge();
-                checkOppositeUserNotifications(appState.events);
+                processCloudActivities(appState.activityLog);
                 renderAllTabs();
             } else {
                 document.getElementById('login-error-msg').classList.remove('hidden');
@@ -1114,6 +1169,7 @@
                 const index = appState.events.findIndex(ev => ev.id === id);
                 if (index !== -1) {
                     appState.events[index] = { id, title, shiftFor, date, time, duration, attendees, details, createdBy: appState.currentUser || 'System' };
+                    logActivity(`updated event "${title}"`, 'calendar', id);
                 }
             } else if (eventMode === 'multi') {
                 if (selectedMultiDates.size === 0) {
@@ -1121,9 +1177,12 @@
                     return;
                 }
 
+                let lastId = null;
                 selectedMultiDates.forEach(dateStr => {
+                    const newId = Date.now().toString() + '_' + Math.random().toString(36).substring(2, 6);
+                    lastId = newId;
                     appState.events.push({
-                        id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 6),
+                        id: newId,
                         title,
                         shiftFor,
                         date: dateStr,
@@ -1134,10 +1193,12 @@
                         createdBy: appState.currentUser || 'System'
                     });
                 });
+                logActivity(`added ${selectedMultiDates.size} shift(s) for "${title}"`, 'calendar', lastId);
             } else {
                 const date = document.getElementById('event-date-input').value;
+                const newId = Date.now().toString();
                 appState.events.push({
-                    id: Date.now().toString(),
+                    id: newId,
                     title,
                     shiftFor,
                     date,
@@ -1147,42 +1208,23 @@
                     details,
                     createdBy: appState.currentUser || 'System'
                 });
+                logActivity(`added "${title}" for ${date}`, 'calendar', newId);
             }
 
             closeEventModal();
-            syncToCloud();
             renderCalendar();
         }
 
         function deleteCurrentEvent() {
             const id = document.getElementById('event-id').value;
             if (id) {
+                const ev = appState.events.find(e => e.id === id);
+                const title = ev ? ev.title : 'event';
                 appState.events = appState.events.filter(ev => ev.id !== id);
+                logActivity(`deleted "${title}" from Calendar`, 'calendar');
                 closeEventModal();
-                syncToCloud();
                 renderCalendar();
             }
-        }
-
-        function renderGroceries() {
-            const container = document.getElementById('grocery-list-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            appState.groceries.forEach(g => {
-                const li = document.createElement('li');
-                li.className = "py-3 flex items-center justify-between";
-                li.innerHTML = `
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" ${g.checked ? 'checked' : ''} onchange="toggleGrocery('${g.id}')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500">
-                        <span class="${g.checked ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'} text-sm font-medium">${g.item}</span>
-                    </label>
-                    <button onclick="deleteGrocery('${g.id}')" class="text-xs text-slate-400 hover:text-red-500 p-1">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                `;
-                container.appendChild(li);
-            });
         }
 
         function addGroceryItem(e) {
@@ -1192,7 +1234,7 @@
             if (item) {
                 appState.groceries.push({ id: Date.now().toString(), item, checked: false });
                 input.value = '';
-                syncToCloud();
+                logActivity(`added "${item}" to Groceries`, 'grocery');
                 renderGroceries();
             }
         }
@@ -1201,42 +1243,23 @@
             const item = appState.groceries.find(g => g.id === id);
             if (item) {
                 item.checked = !item.checked;
-                syncToCloud();
+                logActivity(`${item.checked ? 'checked off' : 'reopened'} "${item.item}"`, 'grocery');
                 renderGroceries();
             }
         }
 
         function deleteGrocery(id) {
+            const item = appState.groceries.find(g => g.id === id);
+            const itemName = item ? item.item : 'item';
             appState.groceries = appState.groceries.filter(g => g.id !== id);
-            syncToCloud();
+            logActivity(`removed "${itemName}" from Groceries`, 'grocery');
             renderGroceries();
         }
 
         function clearCheckedGroceries() {
             appState.groceries = appState.groceries.filter(g => !g.checked);
-            syncToCloud();
+            logActivity(`cleared completed grocery items`, 'grocery');
             renderGroceries();
-        }
-
-        function renderHoneyDo() {
-            const container = document.getElementById('honey-do-list-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            appState.honeyDos.forEach(t => {
-                const li = document.createElement('li');
-                li.className = "py-3 flex items-center justify-between";
-                li.innerHTML = `
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" ${t.checked ? 'checked' : ''} onchange="toggleHoneyDo('${t.id}')" class="w-5 h-5 rounded-md text-blue-600 focus:ring-blue-500">
-                        <span class="${t.checked ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'} text-sm font-medium">${t.task}</span>
-                    </label>
-                    <button onclick="deleteHoneyDo('${t.id}')" class="text-xs text-slate-400 hover:text-red-500 p-1">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                `;
-                container.appendChild(li);
-            });
         }
 
         function addHoneyDoTask(e) {
@@ -1246,7 +1269,7 @@
             if (task) {
                 appState.honeyDos.push({ id: Date.now().toString(), task, checked: false });
                 input.value = '';
-                syncToCloud();
+                logActivity(`added task "${task}"`, 'honey-do');
                 renderHoneyDo();
             }
         }
@@ -1255,60 +1278,23 @@
             const item = appState.honeyDos.find(t => t.id === id);
             if (item) {
                 item.checked = !item.checked;
-                syncToCloud();
+                logActivity(`${item.checked ? 'completed' : 'reopened'} task "${item.task}"`, 'honey-do');
                 renderHoneyDo();
             }
         }
 
         function deleteHoneyDo(id) {
+            const item = appState.honeyDos.find(t => t.id === id);
+            const taskName = item ? item.task : 'task';
             appState.honeyDos = appState.honeyDos.filter(t => t.id !== id);
-            syncToCloud();
+            logActivity(`deleted task "${taskName}"`, 'honey-do');
             renderHoneyDo();
         }
 
         function clearCompletedTasks() {
             appState.honeyDos = appState.honeyDos.filter(t => !t.checked);
-            syncToCloud();
+            logActivity(`cleared done Honey-Do tasks`, 'honey-do');
             renderHoneyDo();
-        }
-
-        function renderMeals() {
-            const grid = document.getElementById('meal-weekly-grid');
-            const tags = document.getElementById('repertoire-tags-container');
-            if (!grid || !tags) return;
-
-            grid.innerHTML = '';
-            tags.innerHTML = '';
-
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-            // Vertical list layout for days of the week
-            days.forEach(day => {
-                const currentMeal = appState.weeklyMeals[day] || '';
-                const card = document.createElement('div');
-                card.className = "bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 border border-slate-200 dark:border-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5";
-                card.innerHTML = `
-                    <div class="flex items-center gap-2 sm:w-36 shrink-0">
-                        <i class="fa-solid fa-calendar-day text-amber-500 text-xs"></i>
-                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">${day}</span>
-                    </div>
-                    <select onchange="assignMealToDay('${day}', this.value)" class="flex-1 w-full sm:max-w-md px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">-- Select Meal --</option>
-                        ${appState.mealRepertoire.map(m => `<option value="${m}" ${m === currentMeal ? 'selected' : ''}>${m}</option>`).join('')}
-                    </select>
-                `;
-                grid.appendChild(card);
-            });
-
-            appState.mealRepertoire.forEach(meal => {
-                const tag = document.createElement('span');
-                tag.className = "px-3 py-1 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-medium flex items-center gap-1.5";
-                tag.innerHTML = `
-                    <span>${meal}</span>
-                    <button onclick="removeMealFromRepertoire('${meal}')" class="text-amber-500 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
-                `;
-                tags.appendChild(tag);
-            });
         }
 
         function addMealToRepertoire(e) {
@@ -1318,33 +1304,26 @@
             if (meal && !appState.mealRepertoire.includes(meal)) {
                 appState.mealRepertoire.push(meal);
                 input.value = '';
-                syncToCloud();
+                logActivity(`added "${meal}" to Recipe Repertoire`, 'meals');
                 renderMeals();
             }
         }
 
         function removeMealFromRepertoire(meal) {
             appState.mealRepertoire = appState.mealRepertoire.filter(m => m !== meal);
-            syncToCloud();
+            logActivity(`removed "${meal}" from Recipe Repertoire`, 'meals');
             renderMeals();
         }
 
         function assignMealToDay(day, meal) {
             appState.weeklyMeals[day] = meal;
-            syncToCloud();
+            logActivity(meal ? `planned ${day} dinner: ${meal}` : `cleared ${day} dinner`, 'meals');
             renderMeals();
         }
 
         function clearWeeklyMeals() {
             appState.weeklyMeals = {};
-            syncToCloud();
-            renderMeals();
-        }
-
-        function renderAllTabs() {
-            renderCalendar();
-            renderGroceries();
-            renderHoneyDo();
+            logActivity(`cleared weekly meal plan`, 'meals');
             renderMeals();
         }
 
@@ -1357,6 +1336,7 @@
                         honeyDos: appState.honeyDos,
                         mealRepertoire: appState.mealRepertoire,
                         weeklyMeals: appState.weeklyMeals,
+                        activityLog: appState.activityLog || [],
                         updatedAt: new Date().toISOString()
                     });
                 } catch (err) {
@@ -1368,7 +1348,8 @@
                     groceries: appState.groceries,
                     honeyDos: appState.honeyDos,
                     mealRepertoire: appState.mealRepertoire,
-                    weeklyMeals: appState.weeklyMeals
+                    weeklyMeals: appState.weeklyMeals,
+                    activityLog: appState.activityLog || []
                 }));
             }
         }
@@ -1391,14 +1372,15 @@
                 db.collection("family_data").doc("planner").onSnapshot(doc => {
                     if (doc.exists) {
                         const data = doc.data();
-                        if (data.events) {
-                            checkOppositeUserNotifications(data.events);
-                            appState.events = data.events;
-                        }
+                        if (data.events) appState.events = data.events;
                         if (data.groceries) appState.groceries = data.groceries;
                         if (data.honeyDos) appState.honeyDos = data.honeyDos;
                         if (data.mealRepertoire) appState.mealRepertoire = data.mealRepertoire;
                         if (data.weeklyMeals) appState.weeklyMeals = data.weeklyMeals;
+                        if (data.activityLog) {
+                            appState.activityLog = data.activityLog;
+                            processCloudActivities(data.activityLog);
+                        }
                         renderAllTabs();
                     }
                 });
@@ -1413,14 +1395,15 @@
                 if (local) {
                     try {
                         const parsed = JSON.parse(local);
-                        if (parsed.events) {
-                            checkOppositeUserNotifications(parsed.events);
-                            appState.events = parsed.events;
-                        }
+                        if (parsed.events) appState.events = parsed.events;
                         if (parsed.groceries) appState.groceries = parsed.groceries;
                         if (parsed.honeyDos) appState.honeyDos = parsed.honeyDos;
                         if (parsed.mealRepertoire) appState.mealRepertoire = parsed.mealRepertoire;
                         if (parsed.weeklyMeals) appState.weeklyMeals = parsed.weeklyMeals;
+                        if (parsed.activityLog) {
+                            appState.activityLog = parsed.activityLog;
+                            processCloudActivities(parsed.activityLog);
+                        }
                     } catch (e) {}
                 }
             }
