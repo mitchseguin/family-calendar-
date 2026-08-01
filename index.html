@@ -27,7 +27,7 @@
             }
         }
     </script>
-    <!-- FontAwesome for icons -->
+    <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -43,10 +43,13 @@
         .hidden {
             display: none !important;
         }
-        .calendar-grid-month {
-            grid-template-columns: repeat(7, minmax(0, 1fr));
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        /* Custom scrollbar for mobile usability */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -83,7 +86,7 @@
             <div class="flex items-center gap-2">
                 <!-- User Profile & Switch Button -->
                 <div id="header-user-badge" class="flex items-center text-xs font-semibold">
-                    <button onclick="promptSwitchUser('Mitch')" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                    <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
                         <i class="fa-solid fa-lock"></i> Locked
                     </button>
                 </div>
@@ -101,7 +104,7 @@
         </div>
     </header>
 
-    <!-- Tab Navigation Bar (4 Main Sections) -->
+    <!-- Tab Navigation Bar -->
     <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-xs sticky top-16 z-20">
         <div class="max-w-7xl mx-auto px-2 sm:px-4 flex overflow-x-auto no-scrollbar gap-1 sm:gap-2 py-2">
             <button id="nav-calendar" onclick="switchTab('calendar')" class="flex-1 min-w-[100px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
@@ -121,6 +124,22 @@
 
     <!-- Main Content Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+
+        <!-- Notification Banner for Opposite User Additions -->
+        <div id="notification-banner" class="hidden bg-purple-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between gap-3 transition-all duration-300">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                    <i id="notification-icon" class="fa-solid fa-bell text-lg animate-bounce"></i>
+                </div>
+                <div>
+                    <div id="notification-title" class="text-xs font-bold uppercase tracking-wider text-purple-200">New Activity</div>
+                    <div id="notification-message" class="text-sm font-semibold"></div>
+                </div>
+            </div>
+            <button onclick="dismissNotification()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition shrink-0">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
         <!-- TAB 1: CALENDAR VIEW -->
         <section id="tab-calendar" class="space-y-4">
@@ -161,7 +180,7 @@
                 </div>
 
                 <!-- Calendar Grid Container -->
-                <div id="calendar-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-700/60 bg-slate-200 dark:bg-slate-700/60">
+                <div id="calendar-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-700/60 bg-slate-200 dark:bg-slate-700/60 min-h-[480px]">
                     <!-- Injected via JavaScript -->
                 </div>
             </div>
@@ -179,7 +198,6 @@
                     </button>
                 </div>
 
-                <!-- Input Form -->
                 <form onsubmit="addGroceryItem(event)" class="flex gap-2">
                     <input type="text" id="grocery-input" placeholder="Add grocery item (e.g. Whole Milk)..." required class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition">
@@ -187,7 +205,6 @@
                     </button>
                 </form>
 
-                <!-- List Items -->
                 <ul id="grocery-list-container" class="divide-y divide-slate-100 dark:divide-slate-700">
                     <!-- Injected via JavaScript -->
                 </ul>
@@ -206,7 +223,6 @@
                     </button>
                 </div>
 
-                <!-- Input Form -->
                 <form onsubmit="addHoneyDoTask(event)" class="flex gap-2">
                     <input type="text" id="honey-do-input" placeholder="Add chore or home task..." required class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition">
@@ -214,7 +230,6 @@
                     </button>
                 </form>
 
-                <!-- Task List -->
                 <ul id="honey-do-list-container" class="divide-y divide-slate-100 dark:divide-slate-700">
                     <!-- Injected via JavaScript -->
                 </ul>
@@ -231,12 +246,11 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">Plan your week's dinners or pick from your favorite recipes.</p>
                 </div>
 
-                <!-- Meal Days Grid -->
-                <div id="meal-weekly-grid" class="grid grid-cols-1 md:grid-cols-7 gap-3">
+                <!-- Vertical Layout for Days of the Week -->
+                <div id="meal-weekly-grid" class="flex flex-col gap-2.5">
                     <!-- Injected via JavaScript -->
                 </div>
 
-                <!-- Recipe Repertoire -->
                 <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
                     <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">Favorite Meal Repertoire</h3>
                     <form onsubmit="addMealToRepertoire(event)" class="flex gap-2">
@@ -256,7 +270,7 @@
 
     <!-- ADD / EDIT EVENT MODAL -->
     <div id="event-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
                 <h3 id="modal-title" class="text-lg font-bold text-slate-800 dark:text-white">Add Calendar Event</h3>
                 <button onclick="closeEventModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center">
@@ -283,6 +297,53 @@
                     </div>
                 </div>
 
+                <!-- Single Date vs Multi-Date Mode Switcher -->
+                <div id="mode-toggle-container" class="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-xl text-xs font-semibold">
+                    <button type="button" id="btn-mode-single" onclick="setEventMode('single')" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs transition">
+                        Single Date
+                    </button>
+                    <button type="button" id="btn-mode-multi" onclick="setEventMode('multi')" class="flex-1 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-calendar-days text-purple-500"></i> Multi-Day Shift Picker
+                    </button>
+                </div>
+
+                <!-- Multi-Day Mini Calendar Picker -->
+                <div id="multi-date-picker-section" class="hidden space-y-2 p-3 bg-purple-50/70 dark:bg-purple-950/30 rounded-2xl border border-purple-200 dark:border-purple-800/50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="navigateMultiPickerMonth(-1)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-slate-600 shadow-xs">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span id="multi-picker-month-year" class="text-xs font-bold text-purple-900 dark:text-purple-200"></span>
+                            <button type="button" onclick="navigateMultiPickerMonth(1)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-slate-600 shadow-xs">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="text-[11px] font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                            <span id="selected-dates-count-badge" class="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-bold">0</span> Dates Selected
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 uppercase py-1">
+                        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                    </div>
+
+                    <div id="multi-picker-grid" class="grid grid-cols-7 gap-1">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="clearSelectedMultiDates()" class="text-[11px] text-slate-400 hover:text-red-500 font-medium">Clear selected dates</button>
+                        <span class="text-[10px] text-slate-400">Tap dates to select/deselect</span>
+                    </div>
+                </div>
+
+                <!-- Single Date Input -->
+                <div id="single-date-container">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Date</label>
+                    <input type="date" id="event-date-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Event Title</label>
                     <input type="text" id="event-title-input" required oninput="toggleShiftForField()" placeholder="e.g. Mel Day Shift, Family Dinner" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -295,16 +356,9 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Date</label>
-                        <input type="date" id="event-date-input" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Time</label>
                         <input type="time" id="event-time-input" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Duration</label>
                         <select id="event-duration-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -316,19 +370,24 @@
                             <option value="All Day">All Day</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Attendees</label>
-                        <select id="event-attendees-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="Mel">Mel</option>
-                            <option value="Mitch">Mitch</option>
-                            <option value="Family">Family</option>
-                        </select>
-                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Attendees</label>
+                    <select id="event-attendees-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Mel">Mel</option>
+                        <option value="Mitch">Mitch</option>
+                        <option value="Family">Family</option>
+                    </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Details & Notes</label>
                     <textarea id="event-details-input" rows="2" placeholder="e.g. Hospital Ward 3, shift swap notes..." class="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div id="multi-date-error-msg" class="text-xs text-red-500 font-semibold hidden text-center">
+                    Please select at least one date from the picker above.
                 </div>
 
                 <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
@@ -339,7 +398,7 @@
                         <button type="button" onclick="closeEventModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold text-xs transition">
                             Cancel
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition">
+                        <button type="submit" id="btn-submit-event" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition">
                             Save Event
                         </button>
                     </div>
@@ -399,10 +458,15 @@
             appId: "1:346598109866:web:69842cbc969cd0dd2d56d3"
         };
 
-        // Global State Controller
+        // Global Application State Controller
         let db = null;
         let isCloudActive = false;
         let targetLoginUser = 'Mitch';
+
+        // Multi-Date Picker State
+        let eventMode = 'single'; // 'single' or 'multi'
+        let selectedMultiDates = new Set();
+        let multiPickerCurrentDate = new Date();
 
         const appState = {
             currentUser: null,
@@ -410,6 +474,8 @@
             activeTab: 'calendar',
             calendarView: 'month',
             currentDate: new Date(),
+            notifiedEventIds: new Set(),
+            hasInitializedNotificationTracking: false,
             events: [
                 { id: '1', title: 'Mel Day Shift', date: '2026-08-05', time: '07:30', duration: '12h', attendees: 'Mel', createdBy: 'Melissa', shiftFor: '', details: 'Hospital Ward 3' },
                 { id: '2', title: 'Family Dinner', date: '2026-08-10', time: '18:00', duration: '2h', attendees: 'Family', createdBy: 'Mitch', shiftFor: '', details: 'Grandma\'s house' }
@@ -428,206 +494,163 @@
             }
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            initFirebase();
-            initLoginState();
-        });
-
-        function initLoginState() {
-            appState.isLoggedIn = false;
-            appState.currentUser = null;
-            document.getElementById('login-modal').classList.remove('hidden');
-            document.getElementById('login-password').value = '';
-            document.getElementById('login-error-msg').classList.add('hidden');
-            setLoginUser('Mitch');
-            updateHeaderUserBadge();
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-toggle-icon');
+            if (icon) {
+                if (document.documentElement.classList.contains('dark')) {
+                    icon.className = 'fa-solid fa-sun text-amber-400';
+                } else {
+                    icon.className = 'fa-solid fa-moon';
+                }
+            }
         }
 
         function setLoginUser(user) {
             targetLoginUser = user;
-            const mitchBtn = document.getElementById('login-select-mitch');
-            const melBtn = document.getElementById('login-select-mel');
-
+            const btnMitch = document.getElementById('login-select-mitch');
+            const btnMel = document.getElementById('login-select-mel');
             if (user === 'Mitch') {
-                mitchBtn.className = "py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-xs transition";
-                melBtn.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition";
+                btnMitch.className = "py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-xs transition";
+                btnMel.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition";
             } else {
-                melBtn.className = "py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white shadow-xs transition";
-                mitchBtn.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition";
+                btnMel.className = "py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white shadow-xs transition";
+                btnMitch.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition";
             }
+            document.getElementById('login-error-msg').classList.add('hidden');
+        }
+
+        function checkOppositeUserNotifications(newEventsList) {
+            if (!appState.isLoggedIn || !appState.currentUser) return;
+
+            const isCurrentMitch = appState.currentUser === 'Mitch';
+            const oppositeUser = isCurrentMitch ? 'Melissa' : 'Mitch';
+            const oppositeAltName = isCurrentMitch ? 'Mel' : 'Mitch';
+
+            // First time initialization: populate known IDs without alerting
+            if (!appState.hasInitializedNotificationTracking) {
+                newEventsList.forEach(ev => appState.notifiedEventIds.add(ev.id));
+                appState.hasInitializedNotificationTracking = true;
+                return;
+            }
+
+            // Find new events created by opposite user
+            const newOppositeEvents = newEventsList.filter(ev => {
+                const isByOpposite = ev.createdBy === oppositeUser || ev.createdBy === oppositeAltName;
+                return isByOpposite && !appState.notifiedEventIds.has(ev.id);
+            });
+
+            if (newOppositeEvents.length > 0) {
+                newOppositeEvents.forEach(ev => appState.notifiedEventIds.add(ev.id));
+
+                const latestEvent = newOppositeEvents[newOppositeEvents.length - 1];
+                const count = newOppositeEvents.length;
+                const authorName = isCurrentMitch ? 'Mel' : 'Mitch';
+
+                const banner = document.getElementById('notification-banner');
+                const titleEl = document.getElementById('notification-title');
+                const msgEl = document.getElementById('notification-message');
+
+                if (banner && msgEl && titleEl) {
+                    titleEl.textContent = `New Activity from ${authorName}`;
+                    if (count === 1) {
+                        msgEl.textContent = `${authorName} added "${latestEvent.title}" on ${latestEvent.date}`;
+                    } else {
+                        msgEl.textContent = `${authorName} added ${count} new events (latest: "${latestEvent.title}")`;
+                    }
+                    banner.classList.remove('hidden');
+                }
+            }
+
+            // Always update all current event IDs into notified set
+            newEventsList.forEach(ev => appState.notifiedEventIds.add(ev.id));
+        }
+
+        function dismissNotification() {
+            const banner = document.getElementById('notification-banner');
+            if (banner) banner.classList.add('hidden');
         }
 
         function handleLogin(e) {
             e.preventDefault();
-            const pwd = document.getElementById('login-password').value.trim();
-            const errorMsg = document.getElementById('login-error-msg');
+            const passwordInput = document.getElementById('login-password');
+            const pwd = passwordInput.value.trim();
+            const isMitch = targetLoginUser === 'Mitch';
+            const validPwd = isMitch ? 'mason' : 'emma';
 
-            let isValid = false;
-            if (targetLoginUser === 'Mitch' && pwd === 'mason') {
-                isValid = true;
-            } else if ((targetLoginUser === 'Melissa' || targetLoginUser === 'Mel') && pwd === 'emma') {
-                isValid = true;
-            }
-
-            if (isValid) {
-                appState.currentUser = targetLoginUser;
+            if (pwd === validPwd) {
+                appState.currentUser = isMitch ? 'Mitch' : 'Melissa';
                 appState.isLoggedIn = true;
+                appState.hasInitializedNotificationTracking = false;
+                passwordInput.value = '';
+                document.getElementById('login-error-msg').classList.add('hidden');
                 document.getElementById('login-modal').classList.add('hidden');
-                errorMsg.classList.add('hidden');
-                document.getElementById('login-password').value = '';
-                updateHeaderUserBadge();
-                renderAllViewports();
-            } else {
-                errorMsg.classList.remove('hidden');
-            }
-        }
 
-        function promptSwitchUser(targetUser) {
-            setLoginUser(targetUser);
-            document.getElementById('login-password').value = '';
-            document.getElementById('login-error-msg').classList.add('hidden');
-            document.getElementById('login-modal').classList.remove('hidden');
+                updateUserBadge();
+                checkOppositeUserNotifications(appState.events);
+                renderAllTabs();
+            } else {
+                document.getElementById('login-error-msg').classList.remove('hidden');
+            }
         }
 
         function logout() {
-            initLoginState();
+            appState.currentUser = null;
+            appState.isLoggedIn = false;
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-error-msg').classList.add('hidden');
+            updateUserBadge();
         }
 
-        function updateHeaderUserBadge() {
+        function updateUserBadge() {
             const badge = document.getElementById('header-user-badge');
             if (!badge) return;
 
-            if (!appState.isLoggedIn || !appState.currentUser) {
+            if (appState.isLoggedIn && appState.currentUser) {
+                const isMel = appState.currentUser === 'Melissa' || appState.currentUser === 'Mel';
                 badge.innerHTML = `
-                    <button onclick="promptSwitchUser('Mitch')" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                    <button onclick="logout()" class="px-3 py-1.5 rounded-lg ${isMel ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'} text-xs font-bold flex items-center gap-1.5 hover:opacity-80 transition">
+                        <i class="fa-solid ${isMel ? 'fa-user-nurse' : 'fa-user-gear'}"></i> ${isMel ? 'Mel' : 'Mitch'}
+                    </button>
+                `;
+            } else {
+                badge.innerHTML = `
+                    <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
                         <i class="fa-solid fa-lock"></i> Locked
-                    </button>`;
-            } else if (appState.currentUser === 'Mitch') {
-                badge.innerHTML = `
-                    <button onclick="promptSwitchUser('Melissa')" title="Click to switch to Mel" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 hover:bg-blue-700 transition">
-                        <i class="fa-solid fa-user-gear"></i> Mitch <i class="fa-solid fa-right-left text-[10px] ml-1 opacity-80"></i>
-                    </button>`;
-            } else {
-                badge.innerHTML = `
-                    <button onclick="promptSwitchUser('Mitch')" title="Click to switch to Mitch" class="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 hover:bg-purple-700 transition">
-                        <i class="fa-solid fa-user-nurse"></i> Mel <i class="fa-solid fa-right-left text-[10px] ml-1 opacity-80"></i>
-                    </button>`;
+                    </button>
+                `;
             }
         }
 
-        function initFirebase() {
-            const badge = document.getElementById('sync-status-badge');
-            try {
-                if (typeof firebase !== 'undefined') {
-                    firebase.initializeApp(firebaseConfig);
-                    db = firebase.firestore();
-                    isCloudActive = true;
-                    badge.innerHTML = `<i class="fa-solid fa-cloud text-emerald-500"></i> Cloud Live`;
-                    badge.className = "inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5";
-                    setupRealtimeListeners();
+        function switchTab(tabName) {
+            appState.activeTab = tabName;
+            ['calendar', 'grocery', 'honey-do', 'meals'].forEach(tab => {
+                const navBtn = document.getElementById(`nav-${tab}`);
+                const tabSection = document.getElementById(`tab-${tab}`);
+                if (tab === tabName) {
+                    navBtn.className = "flex-1 min-w-[100px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30";
+                    tabSection.classList.remove('hidden');
                 } else {
-                    throw new Error("Firebase SDK not loaded");
-                }
-            } catch (err) {
-                console.warn("Firebase running in offline local mode:", err);
-                badge.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-500"></i> Local Sync`;
-                loadFromLocalStorage();
-            }
-        }
-
-        function setupRealtimeListeners() {
-            if (!db) return;
-            
-            db.collection("family_planner").doc("data").onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.events) appState.events = data.events;
-                    if (data.groceries) appState.groceries = data.groceries;
-                    if (data.honeyDos) appState.honeyDos = data.honeyDos;
-                    if (data.mealRepertoire) appState.mealRepertoire = data.mealRepertoire;
-                    if (data.weeklyMeals) appState.weeklyMeals = data.weeklyMeals;
-                    renderAllViewports();
-                } else {
-                    syncToCloud();
-                }
-            }, (error) => {
-                console.warn("Firestore snapshot error:", error);
-                loadFromLocalStorage();
-            });
-        }
-
-        function syncToCloud() {
-            saveToLocalStorage();
-            if (isCloudActive && db) {
-                db.collection("family_planner").doc("data").set({
-                    events: appState.events,
-                    groceries: appState.groceries,
-                    honeyDos: appState.honeyDos,
-                    mealRepertoire: appState.mealRepertoire,
-                    weeklyMeals: appState.weeklyMeals,
-                    updatedAt: new Date().toISOString()
-                }).catch(err => console.warn("Cloud save warning:", err));
-            }
-        }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('bailey_planner_state', JSON.stringify({
-                events: appState.events,
-                groceries: appState.groceries,
-                honeyDos: appState.honeyDos,
-                mealRepertoire: appState.mealRepertoire,
-                weeklyMeals: appState.weeklyMeals
-            }));
-        }
-
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('bailey_planner_state');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    Object.assign(appState, parsed);
-                    if (appState.isLoggedIn) renderAllViewports();
-                } catch(e) {}
-            }
-        }
-
-        function switchTab(tabId) {
-            appState.activeTab = tabId;
-            ['calendar', 'grocery', 'honey-do', 'meals'].forEach(t => {
-                const nav = document.getElementById(`nav-${t}`);
-                const sec = document.getElementById(`tab-${t}`);
-                if (t === tabId) {
-                    sec.classList.remove('hidden');
-                    nav.className = "flex-1 min-w-[100px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30";
-                } else {
-                    sec.classList.add('hidden');
-                    nav.className = "flex-1 min-w-[100px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+                    navBtn.className = "flex-1 min-w-[100px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+                    tabSection.classList.add('hidden');
                 }
             });
-            renderAllViewports();
-        }
-
-        function toggleDarkMode() {
-            document.documentElement.classList.toggle('dark');
-            const icon = document.getElementById('theme-toggle-icon');
-            if (document.documentElement.classList.contains('dark')) {
-                icon.className = "fa-solid fa-sun text-amber-400";
-            } else {
-                icon.className = "fa-solid fa-moon";
-            }
-        }
-
-        function renderAllViewports() {
-            renderCalendar();
-            renderGroceries();
-            renderHoneyDos();
-            renderMealPlanner();
+            renderAllTabs();
         }
 
         function setCalendarView(view) {
             appState.calendarView = view;
-            document.getElementById('btn-view-month').className = view === 'month' ? "px-3 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-semibold" : "px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400";
-            document.getElementById('btn-view-week').className = view === 'week' ? "px-3 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-semibold" : "px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400";
+            const monthBtn = document.getElementById('btn-view-month');
+            const weekBtn = document.getElementById('btn-view-week');
+
+            if (view === 'month') {
+                monthBtn.className = "px-3 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-semibold";
+                weekBtn.className = "px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 font-semibold";
+            } else {
+                weekBtn.className = "px-3 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-semibold";
+                monthBtn.className = "px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 font-semibold";
+            }
             renderCalendar();
         }
 
@@ -646,24 +669,26 @@
         }
 
         function renderCalendar() {
-            const grid = document.getElementById('calendar-grid');
-            const title = document.getElementById('calendar-month-year');
-            grid.innerHTML = '';
-
-            const d = new Date(appState.currentDate);
+            const monthYearHeader = document.getElementById('calendar-month-year');
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            title.textContent = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-
+            
             if (appState.calendarView === 'month') {
-                renderMonthView(grid, d);
+                monthYearHeader.textContent = `${monthNames[appState.currentDate.getMonth()]} ${appState.currentDate.getFullYear()}`;
+                renderMonthView();
             } else {
-                renderWeekView(grid, d);
+                monthYearHeader.textContent = `Week of ${monthNames[appState.currentDate.getMonth()]} ${appState.currentDate.getDate()}, ${appState.currentDate.getFullYear()}`;
+                renderWeekView();
             }
         }
 
-        function renderMonthView(grid, d) {
-            const year = d.getFullYear();
-            const month = d.getMonth();
+        function renderMonthView() {
+            const grid = document.getElementById('calendar-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            grid.className = "grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-700/60 bg-slate-200 dark:bg-slate-700/60 min-h-[480px]";
+
+            const year = appState.currentDate.getFullYear();
+            const month = appState.currentDate.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const prevMonthDays = new Date(year, month, 0).getDate();
@@ -672,236 +697,234 @@
 
             // Prev Month Padding
             for (let i = firstDay - 1; i >= 0; i--) {
-                const dayNum = prevMonthDays - i;
-                grid.appendChild(createCalendarCell('', dayNum, true));
+                const cell = document.createElement('div');
+                cell.className = "bg-slate-50/50 dark:bg-slate-800/40 p-1.5 min-h-[90px] text-slate-300 dark:text-slate-600 text-xs";
+                cell.textContent = prevMonthDays - i;
+                grid.appendChild(cell);
             }
 
             // Current Month Days
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const isToday = dateStr === todayStr;
-                const cell = createCalendarCell(dateStr, day, false, isToday);
-                grid.appendChild(cell);
-            }
 
-            // Next Month Padding
-            const totalCells = firstDay + daysInMonth;
-            const nextPadding = (7 - (totalCells % 7)) % 7;
-            for (let i = 1; i <= nextPadding; i++) {
-                grid.appendChild(createCalendarCell('', i, true));
-            }
-        }
+                const cell = document.createElement('div');
+                cell.className = `bg-white dark:bg-slate-800 p-1.5 min-h-[90px] flex flex-col justify-between hover:bg-slate-50 dark:hover:bg-slate-750 cursor-pointer transition ${isToday ? 'ring-2 ring-blue-500/80 inset-0 z-10' : ''}`;
+                cell.onclick = () => openAddEventModal(dateStr);
 
-        function renderWeekView(grid, d) {
-            const current = new Date(d);
-            const first = current.getDate() - current.getDay();
-            const todayStr = new Date().toISOString().split('T')[0];
+                const header = document.createElement('div');
+                header.className = "flex items-center justify-between mb-1";
+                header.innerHTML = `<span class="text-xs font-bold ${isToday ? 'w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center' : 'text-slate-700 dark:text-slate-300'}">${day}</span>`;
+                cell.appendChild(header);
 
-            for (let i = 0; i < 7; i++) {
-                const dayDate = new Date(current.setDate(first + i));
-                const dateStr = dayDate.toISOString().split('T')[0];
-                const isToday = dateStr === todayStr;
-                const cell = createCalendarCell(dateStr, dayDate.getDate(), false, isToday);
-                grid.appendChild(cell);
-            }
-        }
+                // Events List
+                const dayEvents = appState.events.filter(ev => ev.date === dateStr);
+                const evContainer = document.createElement('div');
+                evContainer.className = "space-y-1 overflow-y-auto max-h-[70px]";
 
-        function createCalendarCell(dateStr, dayNum, isPadding, isToday = false) {
-            const cell = document.createElement('div');
-            cell.className = `min-h-[100px] p-1.5 sm:p-2 bg-white dark:bg-slate-800 transition cursor-pointer ${isPadding ? 'opacity-30' : 'hover:bg-slate-50 dark:hover:bg-slate-750'}`;
-
-            if (dateStr) {
-                cell.onclick = (e) => {
-                    if (e.target === cell || e.target.tagName === 'SPAN' || e.target.parentElement === cell) {
-                        openAddEventModal(dateStr);
-                    }
-                };
-            }
-
-            const header = document.createElement('div');
-            header.className = "flex justify-between items-center mb-1 pointer-events-none";
-            header.innerHTML = `<span class="text-xs font-bold ${isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center' : 'text-slate-700 dark:text-slate-300'}">${dayNum}</span>`;
-            cell.appendChild(header);
-
-            if (dateStr) {
-                const dayEvents = appState.events.filter(e => e.date === dateStr);
                 dayEvents.forEach(ev => {
-                    const badge = document.createElement('div');
-                    const isMel = ev.title.toLowerCase().includes('mel') || ev.attendees === 'Mel';
-                    const hasShiftFor = ev.shiftFor && ev.shiftFor.trim() !== '';
+                    const isMel = ev.attendees === 'Mel' || (ev.title && ev.title.toLowerCase().includes('mel'));
+                    const isShiftCoverage = !!ev.shiftFor;
 
-                    badge.className = `text-[10px] font-semibold p-1 rounded-lg mb-1 cursor-pointer truncate shadow-2xs flex items-center justify-between gap-1 ${
-                        isMel ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200'
+                    const item = document.createElement('div');
+                    item.onclick = (e) => { e.stopPropagation(); openEditEventModal(ev); };
+                    item.className = `p-1 rounded-lg text-[11px] leading-tight font-medium border truncate transition shadow-2xs ${
+                        isMel 
+                            ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-700/50' 
+                            : 'bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-700/50'
                     }`;
 
-                    badge.onclick = (e) => {
-                        e.stopPropagation();
-                        openEditEventModal(ev);
-                    };
-
-                    let titleHTML = '';
-                    if (hasShiftFor) {
-                        titleHTML += `<i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>`;
-                    }
-                    titleHTML += `${ev.title}`;
-
-                    badge.innerHTML = `<span class="truncate">${titleHTML}</span>`;
-                    if (hasShiftFor) {
-                        badge.innerHTML += `<span class="bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 px-1 rounded text-[8px]">For: ${ev.shiftFor}</span>`;
-                    }
-
-                    cell.appendChild(badge);
+                    item.innerHTML = `
+                        <div class="flex items-center gap-1 font-semibold truncate">
+                            ${isShiftCoverage ? '<i class="fa-solid fa-circle-check text-emerald-500 text-[10px]"></i>' : ''}
+                            <span class="truncate">${ev.title}</span>
+                        </div>
+                        ${isShiftCoverage ? `<div class="text-[9px] text-emerald-700 dark:text-emerald-400 font-bold truncate">Shift for: ${ev.shiftFor}</div>` : ''}
+                    `;
+                    evContainer.appendChild(item);
                 });
-            }
 
-            return cell;
-        }
-
-        function renderGroceries() {
-            const list = document.getElementById('grocery-list-container');
-            list.innerHTML = '';
-
-            appState.groceries.forEach(item => {
-                const li = document.createElement('li');
-                li.className = "py-2.5 flex items-center justify-between gap-3";
-                li.innerHTML = `
-                    <label class="flex items-center gap-3 cursor-pointer flex-1">
-                        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleGrocery('${item.id}')" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm ${item.checked ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">${item.item}</span>
-                    </label>
-                    <button onclick="deleteGrocery('${item.id}')" class="text-slate-300 hover:text-red-500 transition px-2">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
-                `;
-                list.appendChild(li);
-            });
-        }
-
-        function addGroceryItem(e) {
-            e.preventDefault();
-            const input = document.getElementById('grocery-input');
-            if (!input.value.trim()) return;
-
-            appState.groceries.push({
-                id: Date.now().toString(),
-                item: input.value.trim(),
-                checked: false
-            });
-            input.value = '';
-            syncToCloud();
-        }
-
-        function toggleGrocery(id) {
-            const item = appState.groceries.find(g => g.id === id);
-            if (item) {
-                item.checked = !item.checked;
-                syncToCloud();
+                cell.appendChild(evContainer);
+                grid.appendChild(cell);
             }
         }
 
-        function deleteGrocery(id) {
-            appState.groceries = appState.groceries.filter(g => g.id !== id);
-            syncToCloud();
-        }
+        function renderWeekView() {
+            const grid = document.getElementById('calendar-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            grid.className = "grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-700/60 bg-slate-200 dark:bg-slate-700/60 min-h-[480px]";
 
-        function clearCheckedGroceries() {
-            appState.groceries = appState.groceries.filter(g => !g.checked);
-            syncToCloud();
-        }
+            const curr = new Date(appState.currentDate);
+            const first = curr.getDate() - curr.getDay();
 
-        function renderHoneyDos() {
-            const list = document.getElementById('honey-do-list-container');
-            list.innerHTML = '';
+            for (let i = 0; i < 7; i++) {
+                const next = new Date(curr.setDate(first + i));
+                const dateStr = next.toISOString().split('T')[0];
+                const dayNum = next.getDate();
 
-            appState.honeyDos.forEach(task => {
-                const li = document.createElement('li');
-                li.className = "py-2.5 flex items-center justify-between gap-3";
-                li.innerHTML = `
-                    <label class="flex items-center gap-3 cursor-pointer flex-1">
-                        <input type="checkbox" ${task.checked ? 'checked' : ''} onchange="toggleHoneyDo('${task.id}')" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
-                        <span class="text-sm ${task.checked ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">${task.task}</span>
-                    </label>
-                    <button onclick="deleteHoneyDo('${task.id}')" class="text-slate-300 hover:text-red-500 transition px-2">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
-                `;
-                list.appendChild(li);
-            });
-        }
+                const cell = document.createElement('div');
+                cell.className = "bg-white dark:bg-slate-800 p-2 min-h-[400px] flex flex-col hover:bg-slate-50 dark:hover:bg-slate-750 cursor-pointer transition";
+                cell.onclick = () => openAddEventModal(dateStr);
 
-        function addHoneyDoTask(e) {
-            e.preventDefault();
-            const input = document.getElementById('honey-do-input');
-            if (!input.value.trim()) return;
+                const header = document.createElement('div');
+                header.className = "text-center pb-2 border-b border-slate-100 dark:border-slate-700 mb-2";
+                header.innerHTML = `<span class="text-sm font-bold text-slate-800 dark:text-white">${dayNum}</span>`;
+                cell.appendChild(header);
 
-            appState.honeyDos.push({
-                id: Date.now().toString(),
-                task: input.value.trim(),
-                checked: false
-            });
-            input.value = '';
-            syncToCloud();
-        }
+                const dayEvents = appState.events.filter(ev => ev.date === dateStr);
+                const evContainer = document.createElement('div');
+                evContainer.className = "space-y-1.5 flex-1";
 
-        function toggleHoneyDo(id) {
-            const task = appState.honeyDos.find(t => t.id === id);
-            if (task) {
-                task.checked = !task.checked;
-                syncToCloud();
+                dayEvents.forEach(ev => {
+                    const isMel = ev.attendees === 'Mel' || (ev.title && ev.title.toLowerCase().includes('mel'));
+                    const isShiftCoverage = !!ev.shiftFor;
+
+                    const item = document.createElement('div');
+                    item.onclick = (e) => { e.stopPropagation(); openEditEventModal(ev); };
+                    item.className = `p-2 rounded-xl text-xs font-medium border space-y-1 shadow-2xs ${
+                        isMel 
+                            ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-700' 
+                            : 'bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-700'
+                    }`;
+
+                    item.innerHTML = `
+                        <div class="flex items-center gap-1 font-bold">
+                            ${isShiftCoverage ? '<i class="fa-solid fa-circle-check text-emerald-500"></i>' : ''}
+                            <span>${ev.title}</span>
+                        </div>
+                        <div class="text-[10px] opacity-80">${ev.time} (${ev.duration})</div>
+                        ${isShiftCoverage ? `<div class="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-bold">Shift for: ${ev.shiftFor}</div>` : ''}
+                        ${ev.details ? `<div class="text-[10px] italic opacity-75">${ev.details}</div>` : ''}
+                    `;
+                    evContainer.appendChild(item);
+                });
+
+                cell.appendChild(evContainer);
+                grid.appendChild(cell);
             }
         }
 
-        function deleteHoneyDo(id) {
-            appState.honeyDos = appState.honeyDos.filter(t => t.id !== id);
-            syncToCloud();
+        function toggleShiftForField() {
+            const title = document.getElementById('event-title-input').value.toLowerCase();
+            const container = document.getElementById('shift-for-container');
+            const modeToggleContainer = document.getElementById('mode-toggle-container');
+
+            const isMelShift = title.includes('mel') || title.includes('shift');
+
+            if (isMelShift) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+
+            // Multi-day picker ONLY available for Mel Day Shift events
+            if (title.includes('mel day shift') || title.includes('mel shift')) {
+                modeToggleContainer.classList.remove('hidden');
+            } else {
+                modeToggleContainer.classList.add('hidden');
+                setEventMode('single');
+            }
         }
 
-        function clearCompletedTasks() {
-            appState.honeyDos = appState.honeyDos.filter(t => !t.checked);
-            syncToCloud();
+        function setEventMode(mode) {
+            eventMode = mode;
+            const singleBtn = document.getElementById('btn-mode-single');
+            const multiBtn = document.getElementById('btn-mode-multi');
+            const singleSec = document.getElementById('single-date-container');
+            const multiSec = document.getElementById('multi-date-picker-section');
+
+            if (mode === 'single') {
+                singleBtn.className = "flex-1 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-semibold";
+                multiBtn.className = "flex-1 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+                singleSec.classList.remove('hidden');
+                multiSec.classList.add('hidden');
+            } else {
+                multiBtn.className = "flex-1 py-1.5 rounded-lg bg-purple-600 text-white shadow-xs font-semibold";
+                singleBtn.className = "flex-1 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+                singleSec.classList.add('hidden');
+                multiSec.classList.remove('hidden');
+                renderMultiPicker();
+            }
+            updateSubmitBtnText();
         }
 
-        function renderMealPlanner() {
-            const container = document.getElementById('meal-weekly-grid');
-            container.innerHTML = '';
-
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            days.forEach(day => {
-                const card = document.createElement('div');
-                card.className = "p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 flex flex-col justify-between gap-2";
-                
-                const meal = appState.weeklyMeals[day] || '';
-
-                card.innerHTML = `
-                    <div class="font-bold text-xs text-amber-600 dark:text-amber-400 uppercase">${day}</div>
-                    <input type="text" value="${meal}" placeholder="Add meal..." onchange="updateMealPlan('${day}', this.value)" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500">
-                `;
-                container.appendChild(card);
-            });
-
-            const tags = document.getElementById('repertoire-tags-container');
-            tags.innerHTML = '';
-            appState.mealRepertoire.forEach(m => {
-                const tag = document.createElement('span');
-                tag.className = "px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 text-xs font-medium cursor-pointer hover:bg-amber-200 transition";
-                tag.textContent = m;
-                tags.appendChild(tag);
-            });
+        function navigateMultiPickerMonth(dir) {
+            multiPickerCurrentDate.setMonth(multiPickerCurrentDate.getMonth() + dir);
+            renderMultiPicker();
         }
 
-        function updateMealPlan(day, value) {
-            appState.weeklyMeals[day] = value;
-            syncToCloud();
+        function renderMultiPicker() {
+            const grid = document.getElementById('multi-picker-grid');
+            const title = document.getElementById('multi-picker-month-year');
+            const badge = document.getElementById('selected-dates-count-badge');
+            if (!grid || !title) return;
+
+            grid.innerHTML = '';
+            badge.textContent = selectedMultiDates.size;
+
+            const year = multiPickerCurrentDate.getFullYear();
+            const month = multiPickerCurrentDate.getMonth();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            title.textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+
+            // Padding
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.disabled = true;
+                btn.className = "h-8 rounded-lg text-[11px] font-medium text-slate-300 dark:text-slate-600 cursor-not-allowed";
+                btn.textContent = prevMonthDays - i;
+                grid.appendChild(btn);
+            }
+
+            // Current Month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = selectedMultiDates.has(dateStr);
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => toggleMultiDateSelection(dateStr);
+                btn.className = `h-8 rounded-lg text-[11px] font-semibold transition flex items-center justify-center ${
+                    isSelected 
+                        ? 'bg-purple-600 text-white shadow-sm ring-2 ring-purple-400' 
+                        : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-purple-100 dark:hover:bg-purple-900/40'
+                }`;
+                btn.textContent = day;
+                grid.appendChild(btn);
+            }
+
+            updateSubmitBtnText();
         }
 
-        function addMealToRepertoire(e) {
-            e.preventDefault();
-            const input = document.getElementById('recipe-input');
-            if (!input.value.trim()) return;
+        function toggleMultiDateSelection(dateStr) {
+            if (selectedMultiDates.has(dateStr)) {
+                selectedMultiDates.delete(dateStr);
+            } else {
+                selectedMultiDates.add(dateStr);
+            }
+            document.getElementById('multi-date-error-msg').classList.add('hidden');
+            renderMultiPicker();
+        }
 
-            appState.mealRepertoire.push(input.value.trim());
-            input.value = '';
-            syncToCloud();
+        function clearSelectedMultiDates() {
+            selectedMultiDates.clear();
+            renderMultiPicker();
+        }
+
+        function updateSubmitBtnText() {
+            const submitBtn = document.getElementById('btn-submit-event');
+            if (eventMode === 'multi') {
+                const count = selectedMultiDates.size;
+                submitBtn.textContent = count > 0 ? `Save ${count} Shift${count > 1 ? 's' : ''}` : 'Save Shifts';
+            } else {
+                submitBtn.textContent = 'Save Event';
+            }
         }
 
         function applyEventPreset(type) {
@@ -910,6 +933,7 @@
             const durationInput = document.getElementById('event-duration-input');
             const attendeesInput = document.getElementById('event-attendees-input');
             const detailsInput = document.getElementById('event-details-input');
+            const modeToggleContainer = document.getElementById('mode-toggle-container');
 
             if (type === 'mel-shift') {
                 titleInput.value = 'Mel Day Shift';
@@ -917,16 +941,22 @@
                 durationInput.value = '12h';
                 attendeesInput.value = 'Mel';
                 if (!detailsInput.value) detailsInput.value = 'Hospital Shift';
+                modeToggleContainer.classList.remove('hidden');
+                setEventMode('multi');
             } else if (type === 'mitch-event') {
                 titleInput.value = 'Mitch Event';
                 timeInput.value = '17:00';
                 durationInput.value = '2h';
                 attendeesInput.value = 'Mitch';
+                modeToggleContainer.classList.add('hidden');
+                setEventMode('single');
             } else if (type === 'family-event') {
                 titleInput.value = 'Family Event';
                 timeInput.value = '12:00';
                 durationInput.value = '2h';
                 attendeesInput.value = 'Family';
+                modeToggleContainer.classList.add('hidden');
+                setEventMode('single');
             }
 
             toggleShiftForField();
@@ -937,13 +967,22 @@
             document.getElementById('event-id').value = '';
             document.getElementById('event-title-input').value = '';
             document.getElementById('event-shift-for-input').value = '';
-            document.getElementById('event-date-input').value = dateStr || new Date().toISOString().split('T')[0];
+            
+            const initialDate = dateStr || new Date().toISOString().split('T')[0];
+            document.getElementById('event-date-input').value = initialDate;
             document.getElementById('event-time-input').value = "07:30";
             document.getElementById('event-duration-input').value = "12h";
             document.getElementById('event-attendees-input').value = "Mel";
             document.getElementById('event-details-input').value = '';
             document.getElementById('btn-delete-event').classList.add('hidden');
             
+            selectedMultiDates.clear();
+            if (dateStr) selectedMultiDates.add(dateStr);
+            multiPickerCurrentDate = new Date(initialDate + 'T00:00:00');
+
+            // Hide multi-day toggle by default until "Mel Day Shift" is selected
+            document.getElementById('mode-toggle-container').classList.add('hidden');
+            setEventMode('single');
             toggleShiftForField();
             document.getElementById('event-modal').classList.remove('hidden');
         }
@@ -960,6 +999,8 @@
             document.getElementById('event-details-input').value = ev.details || '';
             document.getElementById('btn-delete-event').classList.remove('hidden');
 
+            document.getElementById('mode-toggle-container').classList.add('hidden');
+            setEventMode('single');
             toggleShiftForField();
             document.getElementById('event-modal').classList.remove('hidden');
         }
@@ -968,38 +1009,43 @@
             document.getElementById('event-modal').classList.add('hidden');
         }
 
-        function toggleShiftForField() {
-            const titleInput = document.getElementById('event-title-input');
-            const container = document.getElementById('shift-for-container');
-            if (!titleInput || !container) return;
-            
-            const title = titleInput.value.toLowerCase();
-            if (title.includes('mel') || title.includes('shift')) {
-                container.classList.remove('hidden');
-            } else {
-                container.classList.add('hidden');
-            }
-        }
-
         function saveEventForm(e) {
             e.preventDefault();
             const id = document.getElementById('event-id').value;
             const title = document.getElementById('event-title-input').value.trim();
             const shiftFor = document.getElementById('event-shift-for-input').value.trim();
-            const date = document.getElementById('event-date-input').value;
             const time = document.getElementById('event-time-input').value;
             const duration = document.getElementById('event-duration-input').value;
             const attendees = document.getElementById('event-attendees-input').value;
             const details = document.getElementById('event-details-input').value.trim();
 
             if (id) {
-                // Edit existing event
+                const date = document.getElementById('event-date-input').value;
                 const index = appState.events.findIndex(ev => ev.id === id);
                 if (index !== -1) {
                     appState.events[index] = { id, title, shiftFor, date, time, duration, attendees, details, createdBy: appState.currentUser || 'System' };
                 }
+            } else if (eventMode === 'multi') {
+                if (selectedMultiDates.size === 0) {
+                    document.getElementById('multi-date-error-msg').classList.remove('hidden');
+                    return;
+                }
+
+                selectedMultiDates.forEach(dateStr => {
+                    appState.events.push({
+                        id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 6),
+                        title,
+                        shiftFor,
+                        date: dateStr,
+                        time,
+                        duration,
+                        attendees,
+                        details,
+                        createdBy: appState.currentUser || 'System'
+                    });
+                });
             } else {
-                // Add new event
+                const date = document.getElementById('event-date-input').value;
                 appState.events.push({
                     id: Date.now().toString(),
                     title,
@@ -1015,6 +1061,7 @@
 
             closeEventModal();
             syncToCloud();
+            renderCalendar();
         }
 
         function deleteCurrentEvent() {
@@ -1023,8 +1070,271 @@
                 appState.events = appState.events.filter(ev => ev.id !== id);
                 closeEventModal();
                 syncToCloud();
+                renderCalendar();
             }
         }
+
+        function renderGroceries() {
+            const container = document.getElementById('grocery-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            appState.groceries.forEach(g => {
+                const li = document.createElement('li');
+                li.className = "py-3 flex items-center justify-between";
+                li.innerHTML = `
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" ${g.checked ? 'checked' : ''} onchange="toggleGrocery('${g.id}')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500">
+                        <span class="${g.checked ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'} text-sm font-medium">${g.item}</span>
+                    </label>
+                    <button onclick="deleteGrocery('${g.id}')" class="text-xs text-slate-400 hover:text-red-500 p-1">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function addGroceryItem(e) {
+            e.preventDefault();
+            const input = document.getElementById('grocery-input');
+            const item = input.value.trim();
+            if (item) {
+                appState.groceries.push({ id: Date.now().toString(), item, checked: false });
+                input.value = '';
+                syncToCloud();
+                renderGroceries();
+            }
+        }
+
+        function toggleGrocery(id) {
+            const item = appState.groceries.find(g => g.id === id);
+            if (item) {
+                item.checked = !item.checked;
+                syncToCloud();
+                renderGroceries();
+            }
+        }
+
+        function deleteGrocery(id) {
+            appState.groceries = appState.groceries.filter(g => g.id !== id);
+            syncToCloud();
+            renderGroceries();
+        }
+
+        function clearCheckedGroceries() {
+            appState.groceries = appState.groceries.filter(g => !g.checked);
+            syncToCloud();
+            renderGroceries();
+        }
+
+        function renderHoneyDo() {
+            const container = document.getElementById('honey-do-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            appState.honeyDos.forEach(t => {
+                const li = document.createElement('li');
+                li.className = "py-3 flex items-center justify-between";
+                li.innerHTML = `
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" ${t.checked ? 'checked' : ''} onchange="toggleHoneyDo('${t.id}')" class="w-5 h-5 rounded-md text-blue-600 focus:ring-blue-500">
+                        <span class="${t.checked ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'} text-sm font-medium">${t.task}</span>
+                    </label>
+                    <button onclick="deleteHoneyDo('${t.id}')" class="text-xs text-slate-400 hover:text-red-500 p-1">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function addHoneyDoTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('honey-do-input');
+            const task = input.value.trim();
+            if (task) {
+                appState.honeyDos.push({ id: Date.now().toString(), task, checked: false });
+                input.value = '';
+                syncToCloud();
+                renderHoneyDo();
+            }
+        }
+
+        function toggleHoneyDo(id) {
+            const item = appState.honeyDos.find(t => t.id === id);
+            if (item) {
+                item.checked = !item.checked;
+                syncToCloud();
+                renderHoneyDo();
+            }
+        }
+
+        function deleteHoneyDo(id) {
+            appState.honeyDos = appState.honeyDos.filter(t => t.id !== id);
+            syncToCloud();
+            renderHoneyDo();
+        }
+
+        function clearCompletedTasks() {
+            appState.honeyDos = appState.honeyDos.filter(t => !t.checked);
+            syncToCloud();
+            renderHoneyDo();
+        }
+
+        function renderMeals() {
+            const grid = document.getElementById('meal-weekly-grid');
+            const tags = document.getElementById('repertoire-tags-container');
+            if (!grid || !tags) return;
+
+            grid.innerHTML = '';
+            tags.innerHTML = '';
+
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+            // Vertical list layout for days of the week
+            days.forEach(day => {
+                const currentMeal = appState.weeklyMeals[day] || '';
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 border border-slate-200 dark:border-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5";
+                card.innerHTML = `
+                    <div class="flex items-center gap-2 sm:w-36 shrink-0">
+                        <i class="fa-solid fa-calendar-day text-amber-500 text-xs"></i>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">${day}</span>
+                    </div>
+                    <select onchange="assignMealToDay('${day}', this.value)" class="flex-1 w-full sm:max-w-md px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="">-- Select Meal --</option>
+                        ${appState.mealRepertoire.map(m => `<option value="${m}" ${m === currentMeal ? 'selected' : ''}>${m}</option>`).join('')}
+                    </select>
+                `;
+                grid.appendChild(card);
+            });
+
+            appState.mealRepertoire.forEach(meal => {
+                const tag = document.createElement('span');
+                tag.className = "px-3 py-1 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-medium flex items-center gap-1.5";
+                tag.innerHTML = `
+                    <span>${meal}</span>
+                    <button onclick="removeMealFromRepertoire('${meal}')" class="text-amber-500 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+                `;
+                tags.appendChild(tag);
+            });
+        }
+
+        function addMealToRepertoire(e) {
+            e.preventDefault();
+            const input = document.getElementById('recipe-input');
+            const meal = input.value.trim();
+            if (meal && !appState.mealRepertoire.includes(meal)) {
+                appState.mealRepertoire.push(meal);
+                input.value = '';
+                syncToCloud();
+                renderMeals();
+            }
+        }
+
+        function removeMealFromRepertoire(meal) {
+            appState.mealRepertoire = appState.mealRepertoire.filter(m => m !== meal);
+            syncToCloud();
+            renderMeals();
+        }
+
+        function assignMealToDay(day, meal) {
+            appState.weeklyMeals[day] = meal;
+            syncToCloud();
+            renderMeals();
+        }
+
+        function renderAllTabs() {
+            renderCalendar();
+            renderGroceries();
+            renderHoneyDo();
+            renderMeals();
+        }
+
+        function syncToCloud() {
+            if (isCloudActive && db) {
+                try {
+                    db.collection("family_data").doc("planner").set({
+                        events: appState.events,
+                        groceries: appState.groceries,
+                        honeyDos: appState.honeyDos,
+                        mealRepertoire: appState.mealRepertoire,
+                        weeklyMeals: appState.weeklyMeals,
+                        updatedAt: new Date().toISOString()
+                    });
+                } catch (err) {
+                    console.warn("Cloud sync error:", err);
+                }
+            } else {
+                localStorage.setItem('bailey_family_state', JSON.stringify({
+                    events: appState.events,
+                    groceries: appState.groceries,
+                    honeyDos: appState.honeyDos,
+                    mealRepertoire: appState.mealRepertoire,
+                    weeklyMeals: appState.weeklyMeals
+                }));
+            }
+        }
+
+        function initFirebaseSync() {
+            const badge = document.getElementById('sync-status-badge');
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.firestore();
+                isCloudActive = true;
+
+                if (badge) {
+                    badge.innerHTML = `<i class="fa-solid fa-circle text-[8px] text-emerald-500"></i> Cloud Connected`;
+                    badge.className = "inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5";
+                }
+
+                // Listen for real-time changes
+                db.collection("family_data").doc("planner").onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.events) {
+                            checkOppositeUserNotifications(data.events);
+                            appState.events = data.events;
+                        }
+                        if (data.groceries) appState.groceries = data.groceries;
+                        if (data.honeyDos) appState.honeyDos = data.honeyDos;
+                        if (data.mealRepertoire) appState.mealRepertoire = data.mealRepertoire;
+                        if (data.weeklyMeals) appState.weeklyMeals = data.weeklyMeals;
+                        renderAllTabs();
+                    }
+                });
+            } catch (err) {
+                console.warn("Firebase fallback to localStorage", err);
+                isCloudActive = false;
+                if (badge) {
+                    badge.innerHTML = `<i class="fa-solid fa-circle text-[8px] text-amber-500"></i> Offline / Local Storage`;
+                }
+
+                const local = localStorage.getItem('bailey_family_state');
+                if (local) {
+                    try {
+                        const parsed = JSON.parse(local);
+                        if (parsed.events) {
+                            checkOppositeUserNotifications(parsed.events);
+                            appState.events = parsed.events;
+                        }
+                        if (parsed.groceries) appState.groceries = parsed.groceries;
+                        if (parsed.honeyDos) appState.honeyDos = parsed.honeyDos;
+                        if (parsed.mealRepertoire) appState.mealRepertoire = parsed.mealRepertoire;
+                        if (parsed.weeklyMeals) appState.weeklyMeals = parsed.weeklyMeals;
+                    } catch (e) {}
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initFirebaseSync();
+            updateUserBadge();
+            renderAllTabs();
+        });
     </script>
 </body>
 </html>
