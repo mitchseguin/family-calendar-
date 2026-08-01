@@ -66,7 +66,7 @@
     <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-800/90 backdrop-blur border-b border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
             
-            <!-- App Brand Title -->
+            <!-- App Brand Title with Dog Icon -->
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
                     <i class="fa-solid fa-dog text-xl"></i>
@@ -81,13 +81,10 @@
 
             <!-- Profile & Controls -->
             <div class="flex items-center gap-2">
-                <!-- User Profile Toggle -->
-                <div class="bg-slate-100 dark:bg-slate-700 p-1 rounded-xl flex items-center text-xs font-semibold">
-                    <button id="btn-user-mitch" onclick="setUser('Mitch')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
-                        <i class="fa-solid fa-user-gear"></i> Mitch
-                    </button>
-                    <button id="btn-user-melissa" onclick="setUser('Melissa')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
-                        <i class="fa-solid fa-user-nurse"></i> Mel
+                <!-- User Profile & Switch Button -->
+                <div id="header-user-badge" class="flex items-center text-xs font-semibold">
+                    <button onclick="promptSwitchUser('Mitch')" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                        <i class="fa-solid fa-lock"></i> Locked
                     </button>
                 </div>
 
@@ -95,18 +92,20 @@
                 <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition">
                     <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
                 </button>
+
+                <!-- Logout Button -->
+                <button onclick="logout()" title="Lock App" class="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-100 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Tab Navigation Bar -->
+    <!-- Tab Navigation Bar (4 Main Sections) -->
     <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-xs sticky top-16 z-20">
         <div class="max-w-7xl mx-auto px-2 sm:px-4 flex overflow-x-auto no-scrollbar gap-1 sm:gap-2 py-2">
             <button id="nav-calendar" onclick="switchTab('calendar')" class="flex-1 min-w-[100px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                 <i class="fa-solid fa-calendar-days"></i> <span>Calendar</span>
-            </button>
-            <button id="nav-mel-shifts" onclick="switchTab('mel-shifts')" class="flex-1 min-w-[110px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
-                <i class="fa-solid fa-user-clock"></i> <span>Mel Shifts</span>
             </button>
             <button id="nav-grocery" onclick="switchTab('grocery')" class="flex-1 min-w-[110px] px-3 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
                 <i class="fa-solid fa-cart-shopping"></i> <span>Groceries</span>
@@ -168,48 +167,7 @@
             </div>
         </section>
 
-        <!-- TAB 2: MEL DAY SHIFTS -->
-        <section id="tab-mel-shifts" class="space-y-4 hidden">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-bold text-purple-700 dark:text-purple-400 flex items-center gap-2">
-                            <i class="fa-solid fa-user-nurse"></i> Mel Day Shift Selector
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Click any date across months to toggle hospital shift selections.</p>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="navigateShiftCalendar(-1)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
-                            <i class="fa-solid fa-chevron-left text-xs"></i>
-                        </button>
-                        <span id="shift-calendar-title" class="text-sm font-bold text-slate-700 dark:text-slate-200 min-w-[110px] text-center"></span>
-                        <button onclick="navigateShiftCalendar(1)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
-                            <i class="fa-solid fa-chevron-right text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Multi-Month Shift Picker Grid -->
-                <div class="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                    <div class="grid grid-cols-7 bg-purple-50 dark:bg-purple-950/40 text-center text-xs font-semibold text-purple-700 dark:text-purple-300 py-2">
-                        <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
-                    </div>
-                    <div id="shift-picker-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-700/60 bg-slate-200 dark:bg-slate-700/60 text-xs">
-                        <!-- Injected via JavaScript -->
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between pt-2">
-                    <span id="selected-shifts-count" class="text-xs font-medium text-slate-500 dark:text-slate-400">0 shift dates selected</span>
-                    <button onclick="batchAddMelShifts()" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs sm:text-sm shadow-md shadow-purple-500/20 transition flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-plus"></i> Batch Add Selected Shifts
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: GROCERY LIST -->
+        <!-- TAB 2: GROCERY LIST -->
         <section id="tab-grocery" class="space-y-4 hidden">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
                 <div class="flex items-center justify-between">
@@ -236,7 +194,7 @@
             </div>
         </section>
 
-        <!-- TAB 4: HONEY-DO LIST -->
+        <!-- TAB 3: HONEY-DO LIST -->
         <section id="tab-honey-do" class="space-y-4 hidden">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
                 <div class="flex items-center justify-between">
@@ -263,7 +221,7 @@
             </div>
         </section>
 
-        <!-- TAB 5: MEAL PLANNER -->
+        <!-- TAB 4: MEAL PLANNER -->
         <section id="tab-meals" class="space-y-4 hidden">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
                 <div>
@@ -306,72 +264,126 @@
                 </button>
             </div>
 
-            <form onsubmit="saveEventForm(event)" class="space-y-3">
+            <form onsubmit="saveEventForm(event)" class="space-y-4">
                 <input type="hidden" id="event-id">
+
+                <!-- Quick Presets Selector -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Quick Presets</label>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="applyEventPreset('mel-shift')" class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-semibold hover:bg-purple-200 dark:hover:bg-purple-900/80 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-nurse"></i> Mel Day Shift
+                        </button>
+                        <button type="button" onclick="applyEventPreset('mitch-event')" class="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-200 dark:hover:bg-blue-900/80 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-gear"></i> Mitch Event
+                        </button>
+                        <button type="button" onclick="applyEventPreset('family-event')" class="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-200 dark:hover:bg-emerald-900/80 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-people-roof"></i> Family Event
+                        </button>
+                    </div>
+                </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Event Title</label>
-                    <input type="text" id="event-title-input" oninput="toggleShiftForField()" required placeholder="e.g. Mel Day Shift, Dinner..." class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="event-title-input" required oninput="toggleShiftForField()" placeholder="e.g. Mel Day Shift, Family Dinner" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
-                <!-- Shift For (Optional, toggles dynamically) -->
                 <div id="shift-for-container" class="hidden">
-                    <label class="block text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">
-                        <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Shift For (Optional Swap/Coverage)
-                    </label>
-                    <input type="text" id="event-shift-for-input" placeholder="e.g. Sarah, Jen..." class="w-full px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Shift For (Optional)</label>
+                    <input type="text" id="event-shift-for-input" placeholder="e.g. Sarah, Jen (who you took shift from)" class="w-full px-4 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Date</label>
-                        <input type="date" id="event-date-input" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs">
+                        <input type="date" id="event-date-input" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Time</label>
-                        <input type="time" id="event-time-input" value="09:00" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs">
+                        <input type="time" id="event-time-input" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Duration</label>
-                        <select id="event-duration-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs">
-                            <option value="1h">1 Hour</option>
-                            <option value="2h">2 Hours</option>
-                            <option value="4h">4 Hours</option>
-                            <option value="8h">8 Hours</option>
-                            <option value="12h" selected>12 Hours (Shift)</option>
+                        <select id="event-duration-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="1h">1 hour</option>
+                            <option value="2h">2 hours</option>
+                            <option value="4h">4 hours</option>
+                            <option value="8h">8 hours</option>
+                            <option value="12h" selected>12 hours</option>
+                            <option value="All Day">All Day</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Category / User</label>
-                        <select id="event-attendees-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs">
-                            <option value="Mel">Mel Shift</option>
-                            <option value="Mitch">Mitch Evening</option>
-                            <option value="Family">Family Event</option>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Attendees</label>
+                        <select id="event-attendees-input" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Mel">Mel</option>
+                            <option value="Mitch">Mitch</option>
+                            <option value="Family">Family</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Notes & Details</label>
-                    <textarea id="event-details-input" rows="2" placeholder="Add shift notes or event location..." class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Details & Notes</label>
+                    <textarea id="event-details-input" rows="2" placeholder="e.g. Hospital Ward 3, shift swap notes..." class="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 pt-2">
-                    <button type="button" id="btn-delete-event" onclick="deleteCurrentEvent()" class="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold transition hidden">
-                        <i class="fa-solid fa-trash"></i> Delete
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" id="btn-delete-event" onclick="deleteCurrentEvent()" class="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-950/50 dark:text-red-300 font-semibold text-xs transition hidden">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Delete
                     </button>
                     <div class="flex gap-2 ml-auto">
-                        <button type="button" onclick="closeEventModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold">
+                        <button type="button" onclick="closeEventModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold text-xs transition">
                             Cancel
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition">
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition">
                             Save Event
                         </button>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MANDATORY LOGIN MODAL OVERLAY -->
+    <div id="login-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-5 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-amber-500 text-white flex items-center justify-center mx-auto text-3xl shadow-lg shadow-amber-500/30">
+                <i class="fa-solid fa-dog"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">Bailey Family Planner</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Select user account and enter password</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">User Account</label>
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                        <button type="button" id="login-select-mitch" onclick="setLoginUser('Mitch')" class="py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-xs transition">
+                            <i class="fa-solid fa-user-gear mr-1"></i> Mitch
+                        </button>
+                        <button type="button" id="login-select-mel" onclick="setLoginUser('Melissa')" class="py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
+                            <i class="fa-solid fa-user-nurse mr-1"></i> Mel
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Password</label>
+                    <input type="password" id="login-password" required placeholder="Enter password" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div id="login-error-msg" class="text-xs text-red-500 font-medium hidden text-center">
+                    Incorrect password. Please try again.
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition">
+                    Log In
+                </button>
             </form>
         </div>
     </div>
@@ -390,14 +402,14 @@
         // Global State Controller
         let db = null;
         let isCloudActive = false;
+        let targetLoginUser = 'Mitch';
 
         const appState = {
-            currentUser: 'Mitch',
+            currentUser: null,
+            isLoggedIn: false,
             activeTab: 'calendar',
             calendarView: 'month',
             currentDate: new Date(),
-            shiftCalendarDate: new Date(),
-            selectedShiftDates: new Set(),
             events: [
                 { id: '1', title: 'Mel Day Shift', date: '2026-08-05', time: '07:30', duration: '12h', attendees: 'Mel', createdBy: 'Melissa', shiftFor: '', details: 'Hospital Ward 3' },
                 { id: '2', title: 'Family Dinner', date: '2026-08-10', time: '18:00', duration: '2h', attendees: 'Family', createdBy: 'Mitch', shiftFor: '', details: 'Grandma\'s house' }
@@ -416,11 +428,92 @@
             }
         };
 
-        // --- STREAMING_CHUNK:Initializing Firebase Database connection... ---
         window.addEventListener('DOMContentLoaded', () => {
             initFirebase();
-            renderAllViewports();
+            initLoginState();
         });
+
+        function initLoginState() {
+            appState.isLoggedIn = false;
+            appState.currentUser = null;
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-error-msg').classList.add('hidden');
+            setLoginUser('Mitch');
+            updateHeaderUserBadge();
+        }
+
+        function setLoginUser(user) {
+            targetLoginUser = user;
+            const mitchBtn = document.getElementById('login-select-mitch');
+            const melBtn = document.getElementById('login-select-mel');
+
+            if (user === 'Mitch') {
+                mitchBtn.className = "py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-xs transition";
+                melBtn.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition";
+            } else {
+                melBtn.className = "py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white shadow-xs transition";
+                mitchBtn.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition";
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('login-password').value.trim();
+            const errorMsg = document.getElementById('login-error-msg');
+
+            let isValid = false;
+            if (targetLoginUser === 'Mitch' && pwd === 'mason') {
+                isValid = true;
+            } else if ((targetLoginUser === 'Melissa' || targetLoginUser === 'Mel') && pwd === 'emma') {
+                isValid = true;
+            }
+
+            if (isValid) {
+                appState.currentUser = targetLoginUser;
+                appState.isLoggedIn = true;
+                document.getElementById('login-modal').classList.add('hidden');
+                errorMsg.classList.add('hidden');
+                document.getElementById('login-password').value = '';
+                updateHeaderUserBadge();
+                renderAllViewports();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function promptSwitchUser(targetUser) {
+            setLoginUser(targetUser);
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-error-msg').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('hidden');
+        }
+
+        function logout() {
+            initLoginState();
+        }
+
+        function updateHeaderUserBadge() {
+            const badge = document.getElementById('header-user-badge');
+            if (!badge) return;
+
+            if (!appState.isLoggedIn || !appState.currentUser) {
+                badge.innerHTML = `
+                    <button onclick="promptSwitchUser('Mitch')" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                        <i class="fa-solid fa-lock"></i> Locked
+                    </button>`;
+            } else if (appState.currentUser === 'Mitch') {
+                badge.innerHTML = `
+                    <button onclick="promptSwitchUser('Melissa')" title="Click to switch to Mel" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 hover:bg-blue-700 transition">
+                        <i class="fa-solid fa-user-gear"></i> Mitch <i class="fa-solid fa-right-left text-[10px] ml-1 opacity-80"></i>
+                    </button>`;
+            } else {
+                badge.innerHTML = `
+                    <button onclick="promptSwitchUser('Mitch')" title="Click to switch to Mitch" class="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 hover:bg-purple-700 transition">
+                        <i class="fa-solid fa-user-nurse"></i> Mel <i class="fa-solid fa-right-left text-[10px] ml-1 opacity-80"></i>
+                    </button>`;
+            }
+        }
 
         function initFirebase() {
             const badge = document.getElementById('sync-status-badge');
@@ -445,7 +538,6 @@
         function setupRealtimeListeners() {
             if (!db) return;
             
-            // Listen to Events Collection
             db.collection("family_planner").doc("data").onSnapshot((doc) => {
                 if (doc.exists) {
                     const data = doc.data();
@@ -494,28 +586,14 @@
                 try {
                     const parsed = JSON.parse(saved);
                     Object.assign(appState, parsed);
-                    renderAllViewports();
+                    if (appState.isLoggedIn) renderAllViewports();
                 } catch(e) {}
-            }
-        }
-
-        function setUser(user) {
-            appState.currentUser = user;
-            const mitchBtn = document.getElementById('btn-user-mitch');
-            const melBtn = document.getElementById('btn-user-melissa');
-
-            if (user === 'Mitch') {
-                mitchBtn.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
-                melBtn.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
-            } else {
-                melBtn.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-purple-600 text-white shadow-sm";
-                mitchBtn.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
             }
         }
 
         function switchTab(tabId) {
             appState.activeTab = tabId;
-            ['calendar', 'mel-shifts', 'grocery', 'honey-do', 'meals'].forEach(t => {
+            ['calendar', 'grocery', 'honey-do', 'meals'].forEach(t => {
                 const nav = document.getElementById(`nav-${t}`);
                 const sec = document.getElementById(`tab-${t}`);
                 if (t === tabId) {
@@ -541,7 +619,6 @@
 
         function renderAllViewports() {
             renderCalendar();
-            renderShiftPicker();
             renderGroceries();
             renderHoneyDos();
             renderMealPlanner();
@@ -631,11 +708,11 @@
 
         function createCalendarCell(dateStr, dayNum, isPadding, isToday = false) {
             const cell = document.createElement('div');
-            cell.className = `min-h-[100px] p-1.5 sm:p-2 bg-white dark:bg-slate-800 transition ${isPadding ? 'opacity-30' : 'hover:bg-slate-50 dark:hover:bg-slate-750'}`;
+            cell.className = `min-h-[100px] p-1.5 sm:p-2 bg-white dark:bg-slate-800 transition cursor-pointer ${isPadding ? 'opacity-30' : 'hover:bg-slate-50 dark:hover:bg-slate-750'}`;
 
             if (dateStr) {
                 cell.onclick = (e) => {
-                    if (e.target === cell || e.target.tagName === 'SPAN') {
+                    if (e.target === cell || e.target.tagName === 'SPAN' || e.target.parentElement === cell) {
                         openAddEventModal(dateStr);
                     }
                 };
@@ -678,76 +755,6 @@
             }
 
             return cell;
-        }
-
-        function navigateShiftCalendar(dir) {
-            appState.shiftCalendarDate.setMonth(appState.shiftCalendarDate.getMonth() + dir);
-            renderShiftPicker();
-        }
-
-        function renderShiftPicker() {
-            const grid = document.getElementById('shift-picker-grid');
-            const title = document.getElementById('shift-calendar-title');
-            grid.innerHTML = '';
-
-            const d = new Date(appState.shiftCalendarDate);
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            title.textContent = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-
-            const year = d.getFullYear();
-            const month = d.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            for (let i = 0; i < firstDay; i++) {
-                const pad = document.createElement('div');
-                pad.className = "p-2 bg-slate-50 dark:bg-slate-800/40 opacity-30";
-                grid.appendChild(pad);
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isSelected = appState.selectedShiftDates.has(dateStr);
-
-                const dayCell = document.createElement('div');
-                dayCell.className = `p-2 text-center cursor-pointer font-medium transition ${
-                    isSelected ? 'bg-purple-600 text-white font-bold' : 'bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/30'
-                }`;
-                dayCell.textContent = day;
-                dayCell.onclick = () => {
-                    if (appState.selectedShiftDates.has(dateStr)) {
-                        appState.selectedShiftDates.delete(dateStr);
-                    } else {
-                        appState.selectedShiftDates.add(dateStr);
-                    }
-                    renderShiftPicker();
-                };
-                grid.appendChild(dayCell);
-            }
-
-            document.getElementById('selected-shifts-count').textContent = `${appState.selectedShiftDates.size} shift dates selected`;
-        }
-
-        function batchAddMelShifts() {
-            if (appState.selectedShiftDates.size === 0) return;
-
-            appState.selectedShiftDates.forEach(dateStr => {
-                appState.events.push({
-                    id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
-                    title: 'Mel Day Shift',
-                    date: dateStr,
-                    time: '07:30',
-                    duration: '12h',
-                    attendees: 'Mel',
-                    createdBy: appState.currentUser,
-                    shiftFor: '',
-                    details: 'Regular Hospital Shift'
-                });
-            });
-
-            appState.selectedShiftDates.clear();
-            syncToCloud();
-            switchTab('calendar');
         }
 
         function renderGroceries() {
@@ -897,6 +904,34 @@
             syncToCloud();
         }
 
+        function applyEventPreset(type) {
+            const titleInput = document.getElementById('event-title-input');
+            const timeInput = document.getElementById('event-time-input');
+            const durationInput = document.getElementById('event-duration-input');
+            const attendeesInput = document.getElementById('event-attendees-input');
+            const detailsInput = document.getElementById('event-details-input');
+
+            if (type === 'mel-shift') {
+                titleInput.value = 'Mel Day Shift';
+                timeInput.value = '07:30';
+                durationInput.value = '12h';
+                attendeesInput.value = 'Mel';
+                if (!detailsInput.value) detailsInput.value = 'Hospital Shift';
+            } else if (type === 'mitch-event') {
+                titleInput.value = 'Mitch Event';
+                timeInput.value = '17:00';
+                durationInput.value = '2h';
+                attendeesInput.value = 'Mitch';
+            } else if (type === 'family-event') {
+                titleInput.value = 'Family Event';
+                timeInput.value = '12:00';
+                durationInput.value = '2h';
+                attendeesInput.value = 'Family';
+            }
+
+            toggleShiftForField();
+        }
+
         function openAddEventModal(dateStr = '') {
             document.getElementById('modal-title').textContent = "Add Calendar Event";
             document.getElementById('event-id').value = '';
@@ -904,6 +939,8 @@
             document.getElementById('event-shift-for-input').value = '';
             document.getElementById('event-date-input').value = dateStr || new Date().toISOString().split('T')[0];
             document.getElementById('event-time-input').value = "07:30";
+            document.getElementById('event-duration-input').value = "12h";
+            document.getElementById('event-attendees-input').value = "Mel";
             document.getElementById('event-details-input').value = '';
             document.getElementById('btn-delete-event').classList.add('hidden');
             
@@ -932,8 +969,11 @@
         }
 
         function toggleShiftForField() {
-            const title = document.getElementById('event-title-input').value.toLowerCase();
+            const titleInput = document.getElementById('event-title-input');
             const container = document.getElementById('shift-for-container');
+            if (!titleInput || !container) return;
+            
+            const title = titleInput.value.toLowerCase();
             if (title.includes('mel') || title.includes('shift')) {
                 container.classList.remove('hidden');
             } else {
@@ -953,13 +993,13 @@
             const details = document.getElementById('event-details-input').value.trim();
 
             if (id) {
-                // Edit existing
+                // Edit existing event
                 const index = appState.events.findIndex(ev => ev.id === id);
                 if (index !== -1) {
-                    appState.events[index] = { id, title, shiftFor, date, time, duration, attendees, details, createdBy: appState.currentUser };
+                    appState.events[index] = { id, title, shiftFor, date, time, duration, attendees, details, createdBy: appState.currentUser || 'System' };
                 }
             } else {
-                // Add new
+                // Add new event
                 appState.events.push({
                     id: Date.now().toString(),
                     title,
@@ -969,7 +1009,7 @@
                     duration,
                     attendees,
                     details,
-                    createdBy: appState.currentUser
+                    createdBy: appState.currentUser || 'System'
                 });
             }
 
