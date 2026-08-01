@@ -1327,6 +1327,111 @@
             renderMeals();
         }
 
+        function renderAllTabs() {
+            renderCalendar();
+            renderGroceries();
+            renderHoneyDo();
+            renderMeals();
+            renderNotifications();
+        }
+
+        function renderGroceries() {
+            const container = document.getElementById('grocery-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (appState.groceries.length === 0) {
+                container.innerHTML = `<li class="py-4 text-center text-xs text-slate-400 italic">No grocery items. Add one above!</li>`;
+                return;
+            }
+
+            appState.groceries.forEach(g => {
+                const li = document.createElement('li');
+                li.className = "py-3 flex items-center justify-between gap-3";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="toggleGrocery('${g.id}')">
+                        <input type="checkbox" ${g.checked ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer">
+                        <span class="text-sm font-medium ${g.checked ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'} truncate">${g.item}</span>
+                    </div>
+                    <button onclick="deleteGrocery('${g.id}')" class="text-slate-400 hover:text-red-500 transition px-2 py-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function renderHoneyDo() {
+            const container = document.getElementById('honey-do-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (appState.honeyDos.length === 0) {
+                container.innerHTML = `<li class="py-4 text-center text-xs text-slate-400 italic">No chores or tasks pending!</li>`;
+                return;
+            }
+
+            appState.honeyDos.forEach(t => {
+                const li = document.createElement('li');
+                li.className = "py-3 flex items-center justify-between gap-3";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="toggleHoneyDo('${t.id}')">
+                        <input type="checkbox" ${t.checked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer">
+                        <span class="text-sm font-medium ${t.checked ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'} truncate">${t.task}</span>
+                    </div>
+                    <button onclick="deleteHoneyDo('${t.id}')" class="text-slate-400 hover:text-red-500 transition px-2 py-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function renderMeals() {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const grid = document.getElementById('meal-weekly-grid');
+            if (grid) {
+                grid.innerHTML = '';
+                days.forEach(day => {
+                    const row = document.createElement('div');
+                    row.className = "flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700/80 gap-2";
+                    
+                    const currentMeal = appState.weeklyMeals[day] || '';
+                    
+                    let optionsHtml = `<option value="">-- Pick a meal --</option>`;
+                    appState.mealRepertoire.forEach(m => {
+                        optionsHtml += `<option value="${m}" ${m === currentMeal ? 'selected' : ''}>${m}</option>`;
+                    });
+
+                    row.innerHTML = `
+                        <div class="font-semibold text-xs text-slate-700 dark:text-slate-200 w-24 shrink-0">${day}</div>
+                        <div class="flex-1 flex items-center gap-2">
+                            <select onchange="assignMealToDay('${day}', this.value)" class="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                    `;
+                    grid.appendChild(row);
+                });
+            }
+
+            const repContainer = document.getElementById('repertoire-tags-container');
+            if (repContainer) {
+                repContainer.innerHTML = '';
+                appState.mealRepertoire.forEach(meal => {
+                    const tag = document.createElement('span');
+                    tag.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-medium border border-amber-200 dark:border-amber-800/50";
+                    tag.innerHTML = `
+                        <span>${meal}</span>
+                        <button onclick="removeMealFromRepertoire('${meal}')" class="text-amber-600 hover:text-red-500 transition ml-0.5">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    `;
+                    repContainer.appendChild(tag);
+                });
+            }
+        }
+
         function syncToCloud() {
             if (isCloudActive && db) {
                 try {
