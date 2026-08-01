@@ -91,6 +91,28 @@
                     </button>
                 </div>
 
+                <!-- Notification Bell Button & Activity Log Dropdown -->
+                <div class="relative">
+                    <button id="nav-bell-btn" onclick="toggleNotificationDropdown(event)" title="Notifications & Activity Log" class="relative w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                        <i id="bell-icon" class="fa-solid fa-bell"></i>
+                        <span id="bell-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs animate-pulse">0</span>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden text-slate-800 dark:text-slate-100">
+                        <div class="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-750">
+                            <div class="flex items-center gap-1.5 font-bold text-xs">
+                                <i class="fa-solid fa-bell text-amber-500"></i>
+                                <span>Activity Log</span>
+                            </div>
+                            <button onclick="clearNotifications()" class="text-[11px] text-slate-400 hover:text-red-500 font-medium transition">Clear All</button>
+                        </div>
+                        <div id="notification-list" class="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60 p-1 text-xs">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Dark Mode Toggle -->
                 <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition">
                     <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
@@ -124,22 +146,6 @@
 
     <!-- Main Content Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
-
-        <!-- Notification Banner for Opposite User Additions -->
-        <div id="notification-banner" class="hidden bg-purple-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between gap-3 transition-all duration-300">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                    <i id="notification-icon" class="fa-solid fa-bell text-lg animate-bounce"></i>
-                </div>
-                <div>
-                    <div id="notification-title" class="text-xs font-bold uppercase tracking-wider text-purple-200">New Activity</div>
-                    <div id="notification-message" class="text-sm font-semibold"></div>
-                </div>
-            </div>
-            <button onclick="dismissNotification()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition shrink-0">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
 
         <!-- TAB 1: CALENDAR VIEW -->
         <section id="tab-calendar" class="space-y-4">
@@ -239,11 +245,16 @@
         <!-- TAB 4: MEAL PLANNER -->
         <section id="tab-meals" class="space-y-4 hidden">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-utensils text-amber-500"></i> Weekly Meal Planner
-                    </h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Plan your week's dinners or pick from your favorite recipes.</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-utensils text-amber-500"></i> Weekly Meal Planner
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Plan your week's dinners or pick from your favorite recipes.</p>
+                    </div>
+                    <button onclick="clearWeeklyMeals()" class="text-xs text-slate-400 hover:text-red-500 transition">
+                        Clear Week
+                    </button>
                 </div>
 
                 <!-- Vertical Layout for Days of the Week -->
@@ -476,6 +487,8 @@
             currentDate: new Date(),
             notifiedEventIds: new Set(),
             hasInitializedNotificationTracking: false,
+            notifications: [],
+            unreadCount: 0,
             events: [
                 { id: '1', title: 'Mel Day Shift', date: '2026-08-05', time: '07:30', duration: '12h', attendees: 'Mel', createdBy: 'Melissa', shiftFor: '', details: 'Hospital Ward 3' },
                 { id: '2', title: 'Family Dinner', date: '2026-08-10', time: '18:00', duration: '2h', attendees: 'Family', createdBy: 'Mitch', shiftFor: '', details: 'Grandma\'s house' }
@@ -520,6 +533,94 @@
             document.getElementById('login-error-msg').classList.add('hidden');
         }
 
+        function toggleNotificationDropdown(e) {
+            if (e) e.stopPropagation();
+            const dropdown = document.getElementById('notification-dropdown');
+            if (!dropdown) return;
+            const isHidden = dropdown.classList.contains('hidden');
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                appState.unreadCount = 0;
+                updateBellBadge();
+                renderNotifications();
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function updateBellBadge() {
+            const bellIcon = document.getElementById('bell-icon');
+            const bellBadge = document.getElementById('bell-badge');
+            const navBtn = document.getElementById('nav-bell-btn');
+
+            if (appState.unreadCount > 0) {
+                if (bellBadge) {
+                    bellBadge.textContent = appState.unreadCount;
+                    bellBadge.classList.remove('hidden');
+                }
+                if (bellIcon) {
+                    bellIcon.className = "fa-solid fa-bell text-amber-500 animate-bounce";
+                }
+                if (navBtn) {
+                    navBtn.classList.add('ring-2', 'ring-amber-500/50');
+                }
+            } else {
+                if (bellBadge) bellBadge.classList.add('hidden');
+                if (bellIcon) bellIcon.className = "fa-solid fa-bell";
+                if (navBtn) navBtn.classList.remove('ring-2', 'ring-amber-500/50');
+            }
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notification-list');
+            if (!list) return;
+            list.innerHTML = '';
+
+            if (appState.notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="p-4 text-center text-slate-400 dark:text-slate-500 text-xs italic">
+                        No recent activity logged.
+                    </div>
+                `;
+                return;
+            }
+
+            appState.notifications.slice().reverse().forEach(n => {
+                const isMel = n.author === 'Mel' || n.author === 'Melissa';
+                const item = document.createElement('div');
+                item.className = "p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition flex items-start gap-2.5";
+                item.innerHTML = `
+                    <div class="w-7 h-7 rounded-lg ${isMel ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-300' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300'} flex items-center justify-center shrink-0 text-xs mt-0.5 font-bold">
+                        <i class="fa-solid ${isMel ? 'fa-user-nurse' : 'fa-user-gear'}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-tight">
+                            <span class="${isMel ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'} font-bold">${n.author}</span> ${n.action}
+                        </div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">${n.time}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function clearNotifications() {
+            appState.notifications = [];
+            appState.unreadCount = 0;
+            updateBellBadge();
+            renderNotifications();
+        }
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notification-dropdown');
+            const btn = document.getElementById('nav-bell-btn');
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                if (!dropdown.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
+
         function checkOppositeUserNotifications(newEventsList) {
             if (!appState.isLoggedIn || !appState.currentUser) return;
 
@@ -541,34 +642,23 @@
             });
 
             if (newOppositeEvents.length > 0) {
-                newOppositeEvents.forEach(ev => appState.notifiedEventIds.add(ev.id));
-
-                const latestEvent = newOppositeEvents[newOppositeEvents.length - 1];
-                const count = newOppositeEvents.length;
                 const authorName = isCurrentMitch ? 'Mel' : 'Mitch';
+                newOppositeEvents.forEach(ev => {
+                    appState.notifiedEventIds.add(ev.id);
+                    appState.notifications.push({
+                        id: Date.now() + Math.random(),
+                        author: authorName,
+                        action: `added "${ev.title}" on ${ev.date}`,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    });
+                    appState.unreadCount++;
+                });
 
-                const banner = document.getElementById('notification-banner');
-                const titleEl = document.getElementById('notification-title');
-                const msgEl = document.getElementById('notification-message');
-
-                if (banner && msgEl && titleEl) {
-                    titleEl.textContent = `New Activity from ${authorName}`;
-                    if (count === 1) {
-                        msgEl.textContent = `${authorName} added "${latestEvent.title}" on ${latestEvent.date}`;
-                    } else {
-                        msgEl.textContent = `${authorName} added ${count} new events (latest: "${latestEvent.title}")`;
-                    }
-                    banner.classList.remove('hidden');
-                }
+                updateBellBadge();
             }
 
             // Always update all current event IDs into notified set
             newEventsList.forEach(ev => appState.notifiedEventIds.add(ev.id));
-        }
-
-        function dismissNotification() {
-            const banner = document.getElementById('notification-banner');
-            if (banner) banner.classList.add('hidden');
         }
 
         function handleLogin(e) {
@@ -1241,6 +1331,12 @@
 
         function assignMealToDay(day, meal) {
             appState.weeklyMeals[day] = meal;
+            syncToCloud();
+            renderMeals();
+        }
+
+        function clearWeeklyMeals() {
+            appState.weeklyMeals = {};
             syncToCloud();
             renderMeals();
         }
