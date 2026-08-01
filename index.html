@@ -42,6 +42,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Firebase SDKs for Real-Time Cloud Sync -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -69,7 +73,7 @@
                 <!-- Logo & App Title -->
                 <div class="flex items-center gap-3">
                     <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-2.5 rounded-xl text-white shadow-md">
-                        <i class="fa-solid fa-house-chimney-heart text-xl"></i>
+                        <i class="fa-solid fa-dog text-xl"></i>
                     </div>
                     <div>
                         <h1 class="font-bold text-lg leading-none flex items-center gap-2">
@@ -124,18 +128,18 @@
             <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row gap-4 items-center justify-between">
                 
                 <!-- Week/Month & Navigation Controls -->
-                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    <!-- Week / Month View Switcher -->
-                    <div class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-700 p-1">
-                        <button onclick="setCalendarView('week')" id="btn-view-week" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm">
-                            Weekly
-                        </button>
-                        <button onclick="setCalendarView('month')" id="btn-view-month" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900">
-                            Monthly
-                        </button>
-                    </div>
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <!-- Week / Month View Switcher -->
+                <div class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-700 p-1">
+                    <button onclick="setCalendarView('week')" id="btn-view-week" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900">
+                        Weekly
+                    </button>
+                    <button onclick="setCalendarView('month')" id="btn-view-month" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-sm">
+                        Monthly
+                    </button>
+                </div>
 
-                    <!-- Date Navigation Controls -->
+                <!-- Date Navigation Controls -->
                     <div class="flex items-center gap-1">
                         <button onclick="navigateCalendar(-1)" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700" title="Previous">
                             <i class="fa-solid fa-chevron-left text-xs"></i>
@@ -384,6 +388,83 @@
         </div>
     </div>
 
+    <!-- EDIT CALENDAR EVENT & SHIFT NOTES MODAL -->
+    <div id="editEventModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-500"></i> Edit Event / Shift Notes
+                </h3>
+                <button onclick="closeEditEventModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- EDIT FORM -->
+            <form id="form-edit-event" onsubmit="submitEditEvent(event)" class="space-y-3">
+                <input type="hidden" id="editEventId">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Title</label>
+                    <input type="text" id="editEventTitle" required oninput="toggleEditShiftForVisibility()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Date</label>
+                        <input type="date" id="editEventDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Start Time</label>
+                        <input type="time" id="editEventTime" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Duration</label>
+                        <select id="editEventDuration" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="30m">30 min</option>
+                            <option value="1h">1 hour</option>
+                            <option value="2h">2 hours</option>
+                            <option value="4h">4 hours</option>
+                            <option value="12h">12 hours</option>
+                            <option value="All Day">All Day</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Location</label>
+                        <input type="text" id="editEventLocation" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Attendees</label>
+                    <div class="flex flex-wrap gap-3 text-sm">
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="editAttendee" value="Family" class="rounded text-blue-600"> Family</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="editAttendee" value="Mitch" class="rounded text-blue-600"> Mitch</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="editAttendee" value="Mel" class="rounded text-blue-600"> Mel</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="editAttendee" value="Mason" class="rounded text-blue-600"> Mason</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="editAttendee" value="Emma" class="rounded text-blue-600"> Emma</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Shift Notes / Event Details</label>
+                    <textarea id="editEventDetails" rows="3" placeholder="e.g., Covering Sarah's day shift, swap details..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div id="editEventShiftForContainer" class="hidden">
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Shift For (Optional)</label>
+                    <input type="text" id="editEventShiftFor" placeholder="e.g., Sarah, Jen..." class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" onclick="deleteCurrentEditEvent()" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-lg shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow transition">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- USER LOGIN MODAL -->
     <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
@@ -418,15 +499,38 @@
 
     <!-- Application Logic & State Controller -->
     <script>
+        // --- FIREBASE REAL-TIME CLOUD CONFIGURATION ---
+        // Replace the placeholders below with the keys from your Firebase Console:
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                console.log("Firebase Live Cloud Sync Connected!");
+            } catch (err) {
+                console.warn("Firebase initialization skipped", err);
+            }
+        }
+
         // Central Application Reactive State Memory
         const appState = {
             currentUser: 'Mitch',
             activeTab: 'calendar',
-            calendarView: 'week', // 'week' or 'month'
+            calendarView: 'month', // Defaulted to monthly view
             currentDate: new Date(),
             events: [
                 { id: '1', title: 'Family Dinner', date: getRelativeDate(0), time: '18:00', duration: '2h', location: 'Grandma\'s', attendees: ['Family'], createdBy: 'Melissa' },
-                { id: '2', title: 'Mel Day Shift', date: getRelativeDate(1), time: '07:30', duration: '12h', location: 'Hospital', attendees: ['Mel'], createdBy: 'Melissa' },
+                { id: '2', title: 'Mel Day Shift', date: getRelativeDate(1), time: '07:30', duration: '12h', location: 'Hospital', shiftFor: 'Sarah', attendees: ['Mel'], createdBy: 'Melissa' },
                 { id: '3', title: 'Squash with Dave', date: getRelativeDate(2), time: '17:00', duration: '4h', location: 'Club', attendees: ['Mitch'], createdBy: 'Mitch' }
             ],
             groceries: [
@@ -486,8 +590,38 @@
                 localStorage.setItem('bailey_honeydo', JSON.stringify(appState.honeyDos));
                 localStorage.setItem('bailey_meals', JSON.stringify(appState.weeklyMeals));
                 localStorage.setItem('bailey_repertoire', JSON.stringify(appState.mealRepertoire));
+
+                // Sync to Cloud in Real Time
+                if (db) {
+                    db.collection('family_planner').doc('shared_data').set({
+                        events: appState.events,
+                        groceries: appState.groceries,
+                        honeyDos: appState.honeyDos,
+                        weeklyMeals: appState.weeklyMeals,
+                        mealRepertoire: appState.mealRepertoire,
+                        lastUpdated: new Date().toISOString()
+                    }, { merge: true });
+                }
             } catch (e) {
                 console.warn('Saving error', e);
+            }
+        }
+
+        function loadCloudSync() {
+            if (db) {
+                db.collection('family_planner').doc('shared_data').onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.events) appState.events = data.events;
+                        if (data.groceries) appState.groceries = data.groceries;
+                        if (data.honeyDos) appState.honeyDos = data.honeyDos;
+                        if (data.weeklyMeals) appState.weeklyMeals = data.weeklyMeals;
+                        if (data.mealRepertoire) appState.mealRepertoire = data.mealRepertoire;
+                        renderAll();
+                    }
+                }, (error) => {
+                    console.warn("Cloud sync snapshot error:", error);
+                });
             }
         }
 
@@ -630,7 +764,7 @@
                     const dayEvents = filteredEvents.filter(e => e.date === dateStr);
 
                     html += `
-                        <div class="p-3 ${isToday ? 'bg-blue-50/40 dark:bg-slate-700/30' : ''} space-y-2">
+                        <div onclick="openAddEventModal('${dateStr}')" class="p-3 ${isToday ? 'bg-blue-50/40 dark:bg-slate-700/30' : ''} space-y-2 cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors">
                             <div class="flex md:flex-col items-baseline justify-between md:items-start border-b border-slate-100 dark:border-slate-700/50 pb-1">
                                 <span class="text-xs font-bold uppercase text-slate-400">${dayDate.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                                 <span class="text-sm font-bold ${isToday ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : ''}">${dayDate.getDate()}</span>
@@ -641,17 +775,20 @@
                     dayEvents.forEach(ev => {
                         const isMitch = ev.createdBy === 'Mitch';
                         const colorStyle = isMitch ? 'user-mitch-card' : 'user-melissa-card';
+                        const greenShiftIcon = ev.shiftFor ? `<i class="fa-solid fa-circle-check text-emerald-500 text-xs ml-1" title="Shift for: ${escapeHtml(ev.shiftFor)}"></i>` : '';
 
                         html += `
-                            <div class="p-2 text-xs rounded-lg border shadow-xs ${colorStyle} relative group">
+                            <div onclick="event.stopPropagation(); openEditEventModal('${ev.id}')" class="p-2 text-xs rounded-lg border shadow-xs ${colorStyle} relative group cursor-pointer hover:shadow-md transition">
                                 <div class="font-bold flex items-center justify-between">
-                                    <span>${escapeHtml(ev.title)}</span>
-                                    <button onclick="deleteEvent('${ev.id}')" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition" title="Delete">
+                                    <span class="flex items-center gap-1">${escapeHtml(ev.title)}${greenShiftIcon}</span>
+                                    <button onclick="event.stopPropagation(); deleteEvent('${ev.id}')" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition" title="Delete">
                                         <i class="fa-solid fa-trash-can text-[10px]"></i>
                                     </button>
                                 </div>
                                 <div class="text-[11px] opacity-80">${ev.time} (${ev.duration || '1h'})</div>
+                                ${ev.shiftFor ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 px-1.5 py-0.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-user-tag text-emerald-600"></i> Shift for: ${escapeHtml(ev.shiftFor)}</div>` : ''}
                                 ${ev.location ? `<div class="text-[10px] opacity-75"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(ev.location)}</div>` : ''}
+                                ${ev.details ? `<div class="text-[10px] opacity-85 mt-0.5 font-medium truncate"><i class="fa-regular fa-note-sticky mr-1"></i>${escapeHtml(ev.details)}</div>` : ''}
                             </div>
                         `;
                     });
@@ -694,7 +831,7 @@
                     const dayEvents = filteredEvents.filter(e => e.date === dateStr);
 
                     html += `
-                        <div class="p-1.5 min-h-[90px] ${isToday ? 'bg-blue-50/30 dark:bg-slate-700/20' : ''}">
+                        <div onclick="openAddEventModal('${dateStr}')" class="p-1.5 min-h-[90px] ${isToday ? 'bg-blue-50/30 dark:bg-slate-700/20' : ''} cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors">
                             <div class="text-right text-xs font-bold ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}">${d}</div>
                             <div class="space-y-1 mt-1">
                     `;
@@ -702,9 +839,11 @@
                     dayEvents.forEach(ev => {
                         const isMitch = ev.createdBy === 'Mitch';
                         const badgeStyle = isMitch ? 'bg-blue-600 text-white' : 'bg-purple-600 text-white';
+                        const shiftForLabel = ev.shiftFor ? ` [For: ${escapeHtml(ev.shiftFor)}]` : '';
+                        const greenIcon = ev.shiftFor ? `<i class="fa-solid fa-circle-check text-emerald-400 mr-1 text-[10px]"></i>` : '';
                         html += `
-                            <div class="text-[10px] px-1.5 py-0.5 rounded truncate ${badgeStyle}" title="${escapeHtml(ev.title)}">
-                                ${ev.time} ${escapeHtml(ev.title)}
+                            <div onclick="event.stopPropagation(); openEditEventModal('${ev.id}')" class="text-[10px] px-1.5 py-0.5 rounded truncate ${badgeStyle} cursor-pointer hover:opacity-90 flex items-center" title="${escapeHtml(ev.title)}${ev.shiftFor ? ' (Shift for: ' + escapeHtml(ev.shiftFor) + ')' : ''}${ev.details ? ' - ' + escapeHtml(ev.details) : ''}">
+                                ${greenIcon}<span class="truncate">${ev.time} ${escapeHtml(ev.title)}${shiftForLabel}</span>
                             </div>
                         `;
                     });
@@ -819,10 +958,11 @@
         }
 
         // --- FORM SUBMISSIONS & MODALS ---
-        function openAddEventModal() {
+        function openAddEventModal(presetDate) {
             document.getElementById('eventModal').classList.remove('hidden');
-            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('mitchPlanDate').value = new Date().toISOString().split('T')[0];
+            const targetDate = presetDate || new Date().toISOString().split('T')[0];
+            document.getElementById('eventDate').value = targetDate;
+            document.getElementById('mitchPlanDate').value = targetDate;
             populateShiftCheckboxes();
         }
 
@@ -983,6 +1123,82 @@
             document.getElementById('form-type-mitchplans').reset();
         }
 
+        // --- EVENT EDITING & SHIFT NOTES ---
+        function openEditEventModal(id) {
+            const ev = appState.events.find(e => e.id === id);
+            if (!ev) return;
+
+            document.getElementById('editEventId').value = ev.id;
+            document.getElementById('editEventTitle').value = ev.title || '';
+            document.getElementById('editEventDate').value = ev.date || '';
+            document.getElementById('editEventTime').value = ev.time || '12:00';
+            document.getElementById('editEventDuration').value = ev.duration || '1h';
+            document.getElementById('editEventLocation').value = ev.location || '';
+            document.getElementById('editEventDetails').value = ev.details || '';
+            document.getElementById('editEventShiftFor').value = ev.shiftFor || '';
+
+            const attendeeCheckboxes = document.querySelectorAll('input[name="editAttendee"]');
+            attendeeCheckboxes.forEach(cb => {
+                cb.checked = ev.attendees && ev.attendees.includes(cb.value);
+            });
+
+            toggleEditShiftForVisibility();
+
+            document.getElementById('editEventModal').classList.remove('hidden');
+        }
+
+        function toggleEditShiftForVisibility() {
+            const titleVal = (document.getElementById('editEventTitle')?.value || '').toLowerCase();
+            const shiftForContainer = document.getElementById('editEventShiftForContainer');
+            if (shiftForContainer) {
+                if (titleVal.includes('shift') || titleVal.includes('mel')) {
+                    shiftForContainer.classList.remove('hidden');
+                } else {
+                    shiftForContainer.classList.add('hidden');
+                    document.getElementById('editEventShiftFor').value = '';
+                }
+            }
+        }
+
+        function closeEditEventModal() {
+            document.getElementById('editEventModal').classList.add('hidden');
+        }
+
+        function submitEditEvent(e) {
+            e.preventDefault();
+            const id = document.getElementById('editEventId').value;
+            const evIndex = appState.events.findIndex(e => e.id === id);
+            if (evIndex === -1) return;
+
+            const checkedAttendees = Array.from(document.querySelectorAll('input[name="editAttendee"]:checked')).map(cb => cb.value);
+            const shiftForContainer = document.getElementById('editEventShiftForContainer');
+            const isShiftForVisible = shiftForContainer && !shiftForContainer.classList.contains('hidden');
+
+            appState.events[evIndex] = {
+                ...appState.events[evIndex],
+                title: document.getElementById('editEventTitle').value,
+                date: document.getElementById('editEventDate').value,
+                time: document.getElementById('editEventTime').value,
+                duration: document.getElementById('editEventDuration').value,
+                location: document.getElementById('editEventLocation').value,
+                details: document.getElementById('editEventDetails').value,
+                shiftFor: isShiftForVisible ? document.getElementById('editEventShiftFor').value.trim() : '',
+                attendees: checkedAttendees
+            };
+
+            saveData();
+            renderCalendar();
+            closeEditEventModal();
+        }
+
+        function deleteCurrentEditEvent() {
+            const id = document.getElementById('editEventId').value;
+            if (id) {
+                deleteEvent(id);
+                closeEditEventModal();
+            }
+        }
+
         function deleteEvent(id) {
             appState.events = appState.events.filter(e => e.id !== id);
             saveData();
@@ -1065,6 +1281,7 @@
             loadSavedData();
             updateUserUI();
             renderAll();
+            loadCloudSync();
         });
     </script>
 </body>
