@@ -1,0 +1,87 @@
+name: Sync Calendar ICS
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Automatically runs every hour
+  workflow_dispatch: # Allows you to manually trigger it anytime
+
+jobs:
+  build-ics:
+    runs-runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Fetch Firestore Data and Generate ICS
+        run: |
+          node -e '
+          const fs = require("fs");
+          const https = require("https");
+
+          const PROJECT_ID = "bailey-family-planner";
+          const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/family_data/planner`;
+
+          https.get(url, (res) => {
+            let body = "";
+            res.on("data", chunk => body += chunk);
+            res.on("end", () => {
+              try {
+                const data = JSON.parse(body);
+                const fields = data.fields || {};
+                
+                // Parse events from Firestore JSON structure
+                const eventsArray = fields.events?.arrayValue?.values || [];
+                
+                let icsContent = [
+                  "BEGIN:VCALENDAR",
+                  "VERSION:2.0",
+                  "PRODID:-//Bailey Family Planner//EN",
+                  "CALSCALE:GREGORIAN",
+                  "METHOD:PUBLISH",
+                  "X-WR-CALNAME:Bailey Family Calendar",
+                  "X-WR-TIMEZONE:America/New_York"
+                ];
+
+                eventsArray.forEach(ev => {
+                  const m = ev.mapValue.fields;
+                  const title = m.title?.stringValue || "Event";
+                  const date = (m.date?.stringValue || "").replace(/-/g, "");
+                  const time = (m.time?.stringValue || "00:00").replace(":", "") + "00";
+                  const details = m.details?.stringValue || "";
+                  const attendees = m.attendees?.stringValue || "";
+                  const id = m.id?.stringValue || Math.random().toString(36).substr(2, 9);
+
+                  if (date) {
+                    icsContent.push("BEGIN:VEVENT");
+                    icsContent.push(`UID:${id}@bailey-family-planner`);
+                    icsContent.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z`);
+                    icsContent.push(`DTSTART:${date}T${time}`);
+                    icsContent.push(`SUMMARY:${title}`);
+                    if (details) icsContent.push(`DESCRIPTION:${details} (Attendees: ${attendees})`);
+                    icsContent.push("END:VEVENT");
+                  }
+                });
+
+                icsContent.push("END:VCALENDAR");
+                fs.writeFileSync("calendar.ics", icsContent.join("\r\n"));
+                console.log("Successfully generated calendar.ics");
+              } catch (e) {
+                console.error("Error generating ICS:", e);
+                process.exit(1);
+              }
+            });
+          });
+          '
+
+      - name: Commit and Push Updated ICS
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add calendar.ics
+          git commit -m "Auto-update live calendar.ics" || exit 0
+          git push
