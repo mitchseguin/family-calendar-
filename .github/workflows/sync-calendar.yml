@@ -36,7 +36,6 @@ jobs:
               try {
                 const data = JSON.parse(body);
                 const fields = data.fields || {};
-                
                 const eventsArray = fields.events?.arrayValue?.values || [];
                 
                 let icsContent = [
@@ -50,28 +49,52 @@ jobs:
                 ];
 
                 eventsArray.forEach(ev => {
-                  const m = ev.mapValue.fields;
+                  const m = ev.mapValue.fields || {};
                   const title = m.title?.stringValue || "Event";
-                  const date = (m.date?.stringValue || "").replace(/-/g, "");
-                  const time = (m.time?.stringValue || "00:00").replace(":", "") + "00";
+                  const dateStr = m.date?.stringValue || "";
+                  const timeStr = m.time?.stringValue || "07:30";
+                  const durationStr = m.duration?.stringValue || "1h";
                   const details = m.details?.stringValue || "";
                   const attendees = m.attendees?.stringValue || "";
+                  const shiftFor = m.shiftFor?.stringValue || "";
                   const id = m.id?.stringValue || Math.random().toString(36).substr(2, 9);
 
-                  if (date) {
+                  if (dateStr) {
+                    const cleanDate = dateStr.replace(/-/g, "");
+                    const cleanTime = timeStr.replace(":", "") + "00";
+                    
                     icsContent.push("BEGIN:VEVENT");
                     icsContent.push(`UID:${id}@bailey-family-planner`);
                     icsContent.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z`);
-                    icsContent.push(`DTSTART:${date}T${time}`);
-                    icsContent.push(`SUMMARY:${title}`);
-                    if (details) icsContent.push(`DESCRIPTION:${details} (Attendees: ${attendees})`);
+                    
+                    if (durationStr === "All Day") {
+                      icsContent.push(`DTSTART;VALUE=DATE:${cleanDate}`);
+                      icsContent.push(`DURATION:P1D`);
+                    } else {
+                      icsContent.push(`DTSTART:${cleanDate}T${cleanTime}`);
+                      const hours = parseInt(durationStr) || 1;
+                      icsContent.push(`DURATION:PT${hours}H`);
+                    }
+
+                    let summary = title;
+                    if (shiftFor) summary += ` (Covering for ${shiftFor})`;
+                    icsContent.push(`SUMMARY:${summary}`);
+
+                    let descParts = [];
+                    if (attendees) descParts.push(`Attendees: ${attendees}`);
+                    if (shiftFor) descParts.push(`Shift for: ${shiftFor}`);
+                    if (details) descParts.push(`Notes: ${details}`);
+                    if (descParts.length > 0) {
+                      icsContent.push(`DESCRIPTION:${descParts.join(" | ")}`);
+                    }
+
                     icsContent.push("END:VEVENT");
                   }
                 });
 
                 icsContent.push("END:VCALENDAR");
                 fs.writeFileSync("calendar.ics", icsContent.join("\r\n"));
-                console.log("Successfully generated calendar.ics");
+                console.log("Successfully generated valid calendar.ics");
               } catch (e) {
                 console.error("Error generating ICS:", e);
                 process.exit(1);
@@ -85,5 +108,5 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add calendar.ics
-          git commit -m "Auto-update live calendar.ics" || exit 0
+          git commit -m "Auto-update live calendar.ics with RFC compliant events" || exit 0
           git push
