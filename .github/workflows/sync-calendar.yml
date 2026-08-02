@@ -3,11 +3,14 @@ name: Sync Calendar ICS
 on:
   schedule:
     - cron: '0 * * * *' # Automatically runs every hour
-  workflow_dispatch: # Allows you to manually trigger it anytime
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  contents: write
 
 jobs:
   build-ics:
-    runs-runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -34,7 +37,6 @@ jobs:
                 const data = JSON.parse(body);
                 const fields = data.fields || {};
                 
-                // Parse events from Firestore JSON structure
                 const eventsArray = fields.events?.arrayValue?.values || [];
                 
                 let icsContent = [
