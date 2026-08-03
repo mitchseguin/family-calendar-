@@ -71,7 +71,8 @@ jobs:
                       icsContent.push(`DTSTART;VALUE=DATE:${cleanDate}`);
                       icsContent.push(`DURATION:P1D`);
                     } else {
-                      icsContent.push(`DTSTART:${cleanDate}T${cleanTime}`);
+                      // Explicitly specify TZID so Outlook doesn't assume UTC
+                      icsContent.push(`DTSTART;TZID=America/New_York:${cleanDate}T${cleanTime}`);
                       const hours = parseInt(durationStr) || 1;
                       icsContent.push(`DURATION:PT${hours}H`);
                     }
@@ -94,7 +95,7 @@ jobs:
 
                 icsContent.push("END:VCALENDAR");
                 fs.writeFileSync("calendar.ics", icsContent.join("\r\n"));
-                console.log("Successfully generated valid calendar.ics");
+                console.log("Successfully generated timezone-correct calendar.ics");
               } catch (e) {
                 console.error("Error generating ICS:", e);
                 process.exit(1);
@@ -108,5 +109,5 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add calendar.ics
-          git commit -m "Auto-update live calendar.ics with RFC compliant events" || exit 0
+          git commit -m "Auto-update live calendar.ics with explicit America/New_York timezone" || exit 0
           git push
