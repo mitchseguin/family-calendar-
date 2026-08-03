@@ -29,6 +29,11 @@ jobs:
           const PROJECT_ID = "bailey-family-planner";
           const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/family_data/planner`;
 
+          // Helper to escape special iCal characters
+          function escapeICS(str) {
+            return (str || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+          }
+
           https.get(url, (res) => {
             let body = "";
             res.on("data", chunk => body += chunk);
@@ -45,25 +50,7 @@ jobs:
                   "CALSCALE:GREGORIAN",
                   "METHOD:PUBLISH",
                   "X-WR-CALNAME:Bailey Family Calendar",
-                  "X-WR-TIMEZONE:America/New_York",
-                  "BEGIN:VTIMEZONE",
-                  "TZID:America/New_York",
-                  "X-LIC-LOCATION:America/New_York",
-                  "BEGIN:DAYLIGHT",
-                  "TZOFFSETFROM:-0500",
-                  "TZOFFSETTO:-0400",
-                  "TZNAME:EDT",
-                  "DTSTART:19700308T020000",
-                  "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU",
-                  "END:DAYLIGHT",
-                  "BEGIN:STANDARD",
-                  "TZOFFSETFROM:-0400",
-                  "TZOFFSETTO:-0500",
-                  "TZNAME:EST",
-                  "DTSTART:19701101T020000",
-                  "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU",
-                  "END:STANDARD",
-                  "END:VTIMEZONE"
+                  "X-WR-TIMEZONE:America/New_York"
                 ];
 
                 eventsArray.forEach(ev => {
@@ -78,32 +65,38 @@ jobs:
                   const id = m.id?.stringValue || Math.random().toString(36).substring(2, 9);
 
                   if (dateStr) {
-                    const cleanDate = dateStr.replace(/-/g, "");
-                    const cleanTime = timeStr.replace(":", "") + "00";
-                    
                     icsContent.push("BEGIN:VEVENT");
                     icsContent.push(`UID:${id}@bailey-family-planner`);
                     icsContent.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z`);
                     
                     if (durationStr === "All Day") {
+                      const cleanDate = dateStr.replace(/-/g, "");
                       icsContent.push(`DTSTART;VALUE=DATE:${cleanDate}`);
                       icsContent.push(`DURATION:P1D`);
                     } else {
-                      icsContent.push(`DTSTART;TZID=America/New_York:${cleanDate}T${cleanTime}`);
+                      // Convert local time to UTC for bulletproof Outlook compatibility
+                      // Assume Eastern Time (UTC-4 in Daylight Saving Time)
+                      const localDateObj = new Date(`${dateStr}T${timeStr}:00-04:00`);
+                      const startUTC = localDateObj.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
                       const hours = parseInt(durationStr) || 1;
-                      icsContent.push(`DURATION:PT${hours}H`);
+                      
+                      const endLocalDateObj = new Date(localDateObj.getTime() + (hours * 3600000));
+                      const endUTC = endLocalDateObj.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+                      icsContent.push(`DTSTART:${startUTC}`);
+                      icsContent.push(`DTEND:${endUTC}`);
                     }
 
                     let summary = title;
                     if (shiftFor) summary += ` (Covering for ${shiftFor})`;
-                    icsContent.push(`SUMMARY:${summary}`);
+                    icsContent.push(`SUMMARY:${escapeICS(summary)}`);
 
                     let descParts = [];
                     if (attendees) descParts.push(`Attendees: ${attendees}`);
                     if (shiftFor) descParts.push(`Shift for: ${shiftFor}`);
                     if (details) descParts.push(`Notes: ${details}`);
                     if (descParts.length > 0) {
-                      icsContent.push(`DESCRIPTION:${descParts.join(" | ")}`);
+                      icsContent.push(`DESCRIPTION:${escapeICS(descParts.join(" | "))}`);
                     }
 
                     icsContent.push("END:VEVENT");
@@ -112,7 +105,7 @@ jobs:
 
                 icsContent.push("END:VCALENDAR");
                 fs.writeFileSync("calendar.ics", icsContent.join("\r\n"));
-                console.log("Successfully generated timezone-correct calendar.ics");
+                console.log("Successfully generated UTC calendar.ics");
               } catch (e) {
                 console.error("Error generating ICS:", e);
                 process.exit(1);
@@ -130,5 +123,5 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add calendar.ics
-          git commit -m "Auto-update live calendar.ics with VTIMEZONE definition" || exit 0
+          git commit -m "Auto-update live calendar.ics with pure UTC event times" || exit 0
           git push
