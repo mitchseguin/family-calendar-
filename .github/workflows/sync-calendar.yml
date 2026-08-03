@@ -13,16 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Fetch Firestore Data and Generate ICS
         run: |
-          node -e '
+          cat << 'EOF' > generate-ics.js
           const fs = require("fs");
           const https = require("https");
 
@@ -45,11 +45,29 @@ jobs:
                   "CALSCALE:GREGORIAN",
                   "METHOD:PUBLISH",
                   "X-WR-CALNAME:Bailey Family Calendar",
-                  "X-WR-TIMEZONE:America/New_York"
+                  "X-WR-TIMEZONE:America/New_York",
+                  "BEGIN:VTIMEZONE",
+                  "TZID:America/New_York",
+                  "X-LIC-LOCATION:America/New_York",
+                  "BEGIN:DAYLIGHT",
+                  "TZOFFSETFROM:-0500",
+                  "TZOFFSETTO:-0400",
+                  "TZNAME:EDT",
+                  "DTSTART:19700308T020000",
+                  "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU",
+                  "END:DAYLIGHT",
+                  "BEGIN:STANDARD",
+                  "TZOFFSETFROM:-0400",
+                  "TZOFFSETTO:-0500",
+                  "TZNAME:EST",
+                  "DTSTART:19701101T020000",
+                  "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU",
+                  "END:STANDARD",
+                  "END:VTIMEZONE"
                 ];
 
                 eventsArray.forEach(ev => {
-                  const m = ev.mapValue.fields || {};
+                  const m = ev.mapValue?.fields || {};
                   const title = m.title?.stringValue || "Event";
                   const dateStr = m.date?.stringValue || "";
                   const timeStr = m.time?.stringValue || "07:30";
@@ -57,7 +75,7 @@ jobs:
                   const details = m.details?.stringValue || "";
                   const attendees = m.attendees?.stringValue || "";
                   const shiftFor = m.shiftFor?.stringValue || "";
-                  const id = m.id?.stringValue || Math.random().toString(36).substr(2, 9);
+                  const id = m.id?.stringValue || Math.random().toString(36).substring(2, 9);
 
                   if (dateStr) {
                     const cleanDate = dateStr.replace(/-/g, "");
@@ -71,7 +89,6 @@ jobs:
                       icsContent.push(`DTSTART;VALUE=DATE:${cleanDate}`);
                       icsContent.push(`DURATION:P1D`);
                     } else {
-                      // Explicitly specify TZID so Outlook doesn't assume UTC
                       icsContent.push(`DTSTART;TZID=America/New_York:${cleanDate}T${cleanTime}`);
                       const hours = parseInt(durationStr) || 1;
                       icsContent.push(`DURATION:PT${hours}H`);
@@ -101,13 +118,17 @@ jobs:
                 process.exit(1);
               }
             });
+          }).on("error", (err) => {
+            console.error("HTTP Error:", err);
+            process.exit(1);
           });
-          '
+          EOF
+          node generate-ics.js
 
       - name: Commit and Push Updated ICS
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add calendar.ics
-          git commit -m "Auto-update live calendar.ics with explicit America/New_York timezone" || exit 0
+          git commit -m "Auto-update live calendar.ics with VTIMEZONE definition" || exit 0
           git push
